@@ -12,7 +12,29 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  # Pages deploys independently — site goes live even before ROM compiles
+  deploy-pages:
+    name: Deploy Web Player to Pages
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
+
+  # ROM build — separate so a compiler error doesn't block the site
+  build-rom:
     name: Build GBA ROM
     runs-on: ubuntu-latest
     container:
@@ -20,6 +42,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install GBA libraries
+        run: |
+          dkp-pacman -Sy --noconfirm gba-dev
 
       - name: Build sygl.gba
         run: |
@@ -34,25 +60,3 @@ jobs:
           name: sygl-gba-rom
           path: sygl.gba
           retention-days: 90
-
-      - name: Copy ROM into web player
-        run: cp sygl.gba web/sygl.gba
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: web/
-
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
