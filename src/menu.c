@@ -1,23 +1,44 @@
 #include "gba.h"
 #include "menu.h"
 #include "player.h"
+#include <stdio.h>
 
-static const char *SYGL_NAMES[5]  = { "Fire", "Water", "Earth", "Air", "Void" };
-static const char *SYGL_DESC[5] = {
-    "Passion and destruction. High attack.",
-    "Balance and flow. High MP.",
-    "Endurance and strength. High defense.",
-    "Speed and freedom. High agility.",
-    "Mystery and power. High magic.",
+static const char *SYGL_NAMES[5] = {
+    "Fire",
+    "Water",
+    "Earth",
+    "Air",
+    "Void",
 };
 
-static int cursor = 0;
+static const char *SYGL_DESC[5] = {
+    "Passion & destruction. High ATK.",
+    "Balance and flow. High MP.",
+    "Endurance & strength. High DEF.",
+    "Speed and freedom. High AGI.",
+    "Mystery and power. High MAG.",
+};
+
+static int cursor    = 0;
 static int confirmed = 0;
+
+/* ------------------------------------------------------------------ */
+/* menu_init_console                                                    */
+/* Call once when entering any console-mode state (title / sygl select  */
+/* / pause). Sets up the text console on BG0.                          */
+/* ------------------------------------------------------------------ */
+void menu_init_console(void) {
+    consoleDemoInit();
+}
+
+/* ------------------------------------------------------------------ */
+/* Sygl selection                                                       */
+/* ------------------------------------------------------------------ */
 
 void menu_update_sygl_select(void) {
     u32 keys = keysDown();
-    if (keys & KEY_DOWN && cursor < 4) cursor++;
-    if (keys & KEY_UP   && cursor > 0) cursor--;
+    if ((keys & KEY_DOWN) && cursor < 4) cursor++;
+    if ((keys & KEY_UP)   && cursor > 0) cursor--;
     if (keys & KEY_A) {
         player_set_sygl((SyglType)cursor);
         confirmed = 1;
@@ -31,16 +52,55 @@ int menu_sygl_confirmed(void) {
 }
 
 void menu_draw_sygl_select(void) {
-    (void)SYGL_NAMES;
-    (void)SYGL_DESC;
-    (void)cursor;
-    // TODO: render sygl selection with tiles/text
+    int i;
+    /* Clear screen each frame so highlight updates. */
+    iprintf("\x1b[2J"); /* clear console */
+
+    /* Title */
+    iprintf("\x1b[1;8H== Choose Your Sygl ==");
+
+    /* List the five sygls */
+    for (i = 0; i < 5; i++) {
+        if (i == cursor)
+            iprintf("\x1b[%d;4H> %-6s  %s", 4 + i * 2, SYGL_NAMES[i], SYGL_DESC[i]);
+        else
+            iprintf("\x1b[%d;4H  %-6s  %s", 4 + i * 2, SYGL_NAMES[i], SYGL_DESC[i]);
+    }
+
+    iprintf("\x1b[16;4HA: Confirm   UP/DOWN: Move");
 }
 
+/* ------------------------------------------------------------------ */
+/* Pause menu                                                           */
+/* ------------------------------------------------------------------ */
+
+static const char *PAUSE_OPTIONS[] = {
+    "Items",
+    "Magic",
+    "Status",
+    "Save",
+    "Resume",
+};
+#define PAUSE_COUNT 5
+
+static int pause_cursor = 0;
+
 void menu_update(void) {
-    // TODO: pause menu (Items / Magic / Status / Save)
+    u32 keys = keysDown();
+    if ((keys & KEY_DOWN) && pause_cursor < PAUSE_COUNT - 1) pause_cursor++;
+    if ((keys & KEY_UP)   && pause_cursor > 0)               pause_cursor--;
+    /* TODO: handle A confirm for each option */
 }
 
 void menu_draw(void) {
-    // TODO: draw pause menu panel
+    int i;
+    iprintf("\x1b[2J");
+    iprintf("\x1b[1;10H== Menu ==");
+    for (i = 0; i < PAUSE_COUNT; i++) {
+        if (i == pause_cursor)
+            iprintf("\x1b[%d;8H> %s", 4 + i * 2, PAUSE_OPTIONS[i]);
+        else
+            iprintf("\x1b[%d;8H  %s", 4 + i * 2, PAUSE_OPTIONS[i]);
+    }
+    iprintf("\x1b[16;4HB: Close menu");
 }

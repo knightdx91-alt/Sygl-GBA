@@ -59,5 +59,19 @@ void player_update(void) {
 }
 
 void player_draw(void) {
-    // TODO: OAM sprite entry 0 = player
+    /* Player is always centered on screen; map scrolls around them. */
+    int sx = SCREEN_W / 2 - TILE_SIZE / 2;  /* 116 */
+    int sy = SCREEN_H / 2 - TILE_SIZE / 2;  /*  76 */
+
+    /*
+     * attr0: bits[7:0]  = Y position
+     *        bits[13]   = 0 for 4bpp (16-color)
+     *        bits[15:14]= 00 for normal (square shape)
+     * attr1: bits[8:0]  = X position
+     *        bits[15:14]= 00 → 8×8 for square shape
+     * attr2: bits[9:0]  = tile number (0), bits[13:12] = palette number (0)
+     */
+    OAM[0].attr0 = (u16)((sy & 0xFF) | (0 << 13) | (0 << 14));
+    OAM[0].attr1 = (u16)((sx & 0x1FF) | (0 << 14));
+    OAM[0].attr2 = 0; /* tile 0, palette 0 */
 }

@@ -1,6 +1,7 @@
 #include "gba.h"
 #include "map.h"
 #include "player.h"
+#include "tiles.h"
 
 static const u8 town_map[MAP_ROWS][MAP_COLS] = {
     { 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3 },
@@ -40,8 +41,25 @@ static const u8 town_map[MAP_ROWS][MAP_COLS] = {
 static const u8 solid_tiles[] = { TILE_WALL, TILE_WATER, TILE_TREE };
 
 void map_init(void) {
-    // TODO: load tile graphics into VRAM BG charblock 0
-    // TODO: copy town_map into BG screen block
+    int x, y;
+    u16 *sb;
+
+    /* Load palettes + tile graphics into VRAM */
+    tiles_init();
+
+    /* BG0: 4bpp, charblock 0, screenblock 28, 32×32 tiles */
+    REG_BG0CNT = BG_COLOR_16 | BG_MAP_BASE(28) | BG_TILE_BASE(0) | BG_SIZE_0;
+
+    /* Fill screenblock 28 with town_map tile indices */
+    sb = (u16 *)(VRAM + 0xE000); /* screenblock 28 = VRAM + 28*0x800 */
+    for (y = 0; y < MAP_ROWS; y++) {
+        for (x = 0; x < MAP_COLS; x++) {
+            sb[y * 32 + x] = (u16)town_map[y][x];
+        }
+    }
+
+    /* Hide all sprites */
+    oam_clear();
 }
 
 void map_draw(void) {
