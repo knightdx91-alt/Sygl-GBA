@@ -4,19 +4,19 @@
 #include <stdio.h>
 
 static const char *SYGL_NAMES[5] = {
-    "Fire",
-    "Water",
-    "Earth",
-    "Air",
-    "Void",
+    "Duality",
+    "Waves",
+    "Terra",
+    "Tempus",
+    "Blood",
 };
 
 static const char *SYGL_DESC[5] = {
-    "Passion & destruction. High ATK.",
-    "Balance and flow. High MP.",
-    "Endurance & strength. High DEF.",
-    "Speed and freedom. High AGI.",
-    "Mystery and power. High MAG.",
+    "Aren. Day & night. Heal and harm.",
+    "Kenmei. The tide. Adapt, endure.",
+    "Naisura. The earth. High DEF.",
+    "Raizen. The storm. High SPD.",
+    "Amelia. The price. High ATK.",
 };
 
 static int cursor    = 0;

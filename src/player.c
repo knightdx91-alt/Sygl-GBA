@@ -4,12 +4,13 @@
 
 Player player;
 
+/* hp, mp, atk, def, spd — sourced from lore data.js */
 static const u16 SYGL_BASE[5][5] = {
-    { 40, 30, 8, 4, 7 },
-    { 45, 40, 6, 6, 6 },
-    { 55, 25, 7, 9, 4 },
-    { 38, 35, 6, 4, 9 },
-    { 35, 50, 5, 3, 7 },
+    /* Duality / Aren      */ { 32, 26, 4, 3, 75 },
+    /* Waves   / Kenmei    */ { 30, 30, 3, 3, 72 },
+    /* Terra   / Naisura   */ { 38, 20, 4, 5, 70 },
+    /* Tempus  / Raizen    */ { 26, 28, 5, 2, 82 },
+    /* Blood   / Amelia    */ { 30, 24, 5, 3, 78 },
 };
 
 void player_init(void) {

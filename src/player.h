@@ -2,12 +2,12 @@
 #include <gba_types.h>
 
 typedef enum {
-    SYGL_NONE = -1,
-    SYGL_FIRE  = 0,
-    SYGL_WATER = 1,
-    SYGL_EARTH = 2,
-    SYGL_AIR   = 3,
-    SYGL_VOID  = 4,
+    SYGL_NONE    = -1,
+    SYGL_DUALITY = 0,  /* Aren       — balance, heal/harm  */
+    SYGL_WAVES   = 1,  /* Kenmei     — water, endurance    */
+    SYGL_TERRA   = 2,  /* Naisura    — earth, unmoving     */
+    SYGL_TEMPUS  = 3,  /* Raizen     — storm, speed        */
+    SYGL_BLOOD   = 4,  /* Amelia     — drain, sacrifice    */
 } SyglType;
 
 typedef struct {
