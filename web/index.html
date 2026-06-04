@@ -51,6 +51,7 @@
       align-items: center;
       justify-content: center;
       gap: 16px;
+      padding: 24px;
     }
     #launch-screen h2 {
       font-size: 1.1rem;
@@ -84,6 +85,30 @@
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+    .btn-local {
+      background: #1a2a1a;
+      color: #e8dfc8;
+      border: 1px solid #3a6a3a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .divider {
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #3a2e5a;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #3a2e5a;
     }
     #drive-status {
       font-size: 0.78rem;
@@ -126,6 +151,7 @@
       font-size: 0.75rem;
       color: #4a4060;
     }
+    #file-input { display: none; }
   </style>
 </head>
 <body>
@@ -140,6 +166,23 @@
     <h2>Select a ROM to play</h2>
     <div class="launch-btns">
       <button class="btn btn-primary" onclick="launchBuiltIn()">&#9654; Play Sygl</button>
+    </div>
+
+    <div class="divider">or load your own ROM</div>
+
+    <div class="launch-btns">
+      <!-- Local file upload -->
+      <button class="btn btn-local" onclick="document.getElementById('file-input').click()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Load from Computer
+      </button>
+      <input type="file" id="file-input" accept=".gba,.gbc,.gb" onchange="launchFromFile(this)" />
+
+      <!-- Google Drive -->
       <button class="btn btn-drive" onclick="launchFromDrive()">
         <svg width="18" height="18" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
           <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L28.5 48H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
@@ -152,6 +195,7 @@
         Load from Google Drive
       </button>
     </div>
+
     <div id="drive-status"></div>
   </div>
 
@@ -174,13 +218,21 @@
 
 <script>
   const GOOGLE_CLIENT_ID = '74660999441-3tu0u98phuckm7avp4kh6rnohpo84l1f.apps.googleusercontent.com';
-
   let accessToken = null;
 
   function launchBuiltIn() {
     startEmulator('sygl.gba', 'Sygl');
   }
 
+  // ── Local file ──────────────────────────────────────────────────────────
+  function launchFromFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    startEmulator(url, file.name.replace(/\.(gba|gbc|gb)$/i, ''));
+  }
+
+  // ── Google Drive ─────────────────────────────────────────────────────────
   function launchFromDrive() {
     setStatus('Signing in to Google…');
     const client = google.accounts.oauth2.initTokenClient({
@@ -200,7 +252,6 @@
     const view = new google.picker.DocsView(google.picker.ViewId.DOCS)
       .setIncludeFolders(true)
       .setQuery('.gba');
-
     new google.picker.PickerBuilder()
       .setOAuthToken(accessToken)
       .addView(view)
@@ -231,6 +282,7 @@
     }
   }
 
+  // ── EmulatorJS ───────────────────────────────────────────────────────────
   function startEmulator(romUrl, romName) {
     document.getElementById('launch-screen').style.display = 'none';
     document.getElementById('game').style.display = 'block';
