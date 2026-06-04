@@ -169,24 +169,11 @@
 
 <footer>Sygl &copy; knightdx91 &nbsp;&bull;&nbsp; Built with devkitARM &nbsp;&bull;&nbsp; Powered by EmulatorJS</footer>
 
-<!-- Google Identity Services (sign-in + token) -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<!-- Google API client (Drive download + Picker) -->
 <script src="https://apis.google.com/js/api.js" async defer></script>
 
 <script>
-  // ─────────────────────────────────────────────────────────────────────────
-  // CONFIG — only a Client ID is needed. No API key required.
-  //
-  // To create one (free):
-  //   1. Go to https://console.cloud.google.com/apis/credentials
-  //   2. Click "+ CREATE CREDENTIALS" → "OAuth client ID"
-  //   3. Application type: Web application
-  //   4. Authorised JavaScript origins: https://knightdx91-alt.github.io
-  //   5. Copy the Client ID below
-  //   6. Enable "Google Drive API" and "Google Picker API" in your project
-  // ─────────────────────────────────────────────────────────────────────────
-  const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE';
+  const GOOGLE_CLIENT_ID = '74660999441-3tu0u98phuckm7avp4kh6rnohpo84l1f.apps.googleusercontent.com';
 
   let accessToken = null;
 
@@ -195,10 +182,6 @@
   }
 
   function launchFromDrive() {
-    if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID_HERE') {
-      setStatus('Google Client ID not set — see web/index.html comments.', 'error');
-      return;
-    }
     setStatus('Signing in to Google…');
     const client = google.accounts.oauth2.initTokenClient({
       client_id: GOOGLE_CLIENT_ID,
