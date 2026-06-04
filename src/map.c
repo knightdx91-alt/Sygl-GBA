@@ -48,7 +48,7 @@ void map_init(void) {
     tiles_init();
 
     /* BG0: 4bpp, charblock 0, screenblock 28, 32×32 tiles */
-    REG_BG0CNT = BG_COLOR_16 | BG_MAP_BASE(28) | BG_TILE_BASE(0) | BG_SIZE_0;
+    REG_BG0CNT = BG_MAP_BASE(28) | BG_TILE_BASE(0) | BG_SIZE_0; /* 4bpp is default (0) */
 
     /* Fill screenblock 28 with town_map tile indices */
     sb = (u16 *)(VRAM + 0xE000); /* screenblock 28 = VRAM + 28*0x800 */
