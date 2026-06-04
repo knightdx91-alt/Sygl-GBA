@@ -5,7 +5,6 @@
 #include <gba_systemcalls.h>
 #include <gba_input.h>
 #include <gba_sprites.h>
-#include <gba_bg.h>
 
 #define SCREEN_W 240
 #define SCREEN_H 160
