@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sygl — A Magykal RPG</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a12;
+      color: #e8dfc8;
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      padding: 24px 0 8px;
+      text-align: center;
+      background: linear-gradient(180deg, #1a1228 0%, transparent 100%);
+    }
+    header h1 {
+      font-size: 2.8rem;
+      letter-spacing: 0.18em;
+      color: #f5c842;
+      text-shadow: 0 0 24px #f5c84288;
+    }
+    header p {
+      margin-top: 6px;
+      font-size: 0.95rem;
+      color: #a098b8;
+      letter-spacing: 0.08em;
+    }
+    #game-wrap {
+      margin: 28px auto;
+      width: 100%;
+      max-width: 720px;
+      padding: 0 16px;
+    }
+    #game {
+      width: 100%;
+      aspect-ratio: 240 / 160;
+      background: #000;
+      border: 2px solid #3a2e5a;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 0 40px #7040ff44;
+    }
+    .controls {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: #7068a0;
+    }
+    .controls span {
+      background: #1a1630;
+      border: 1px solid #3a2e5a;
+      border-radius: 4px;
+      padding: 4px 10px;
+    }
+    .controls strong { color: #c8b8f0; }
+    footer {
+      margin-top: auto;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #4a4060;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SYGL</h1>
+    <p>A Magykal RPG &nbsp;&bull;&nbsp; Choose your sigil. Shape your destiny.</p>
+  </header>
+  <div id="game-wrap">
+    <div id="game"></div>
+    <div class="controls">
+      <span><strong>Arrow keys</strong> Move</span>
+      <span><strong>Z</strong> A button</span>
+      <span><strong>X</strong> B button</span>
+      <span><strong>Enter</strong> Start</span>
+      <span><strong>Shift</strong> Select</span>
+      <span><strong>A / S</strong> L / R</span>
+    </div>
+  </div>
+  <footer>Sygl &copy; knightdx91 &nbsp;&bull;&nbsp; Built with devkitARM &nbsp;&bull;&nbsp; Powered by EmulatorJS</footer>
+  <script>
+    EJS_player    = "#game";
+    EJS_core      = "gba";
+    EJS_gameUrl   = "sygl.gba";
+    EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+    EJS_color     = "#f5c842";
+    EJS_startOnLoaded = true;
+  </script>
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+</body>
+</html>
