@@ -39,17 +39,6 @@
       max-width: 720px;
       padding: 0 16px;
     }
-    #game {
-      width: 100%;
-      aspect-ratio: 240 / 160;
-      background: #000;
-      border: 2px solid #3a2e5a;
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 0 40px #7040ff44;
-    }
-
-    /* Launch screen shown before emulator starts */
     #launch-screen {
       width: 100%;
       aspect-ratio: 240 / 160;
@@ -87,10 +76,7 @@
     }
     .btn:hover  { opacity: 0.85; transform: translateY(-1px); }
     .btn:active { transform: translateY(0); }
-    .btn-primary {
-      background: #f5c842;
-      color: #0a0a12;
-    }
+    .btn-primary { background: #f5c842; color: #0a0a12; }
     .btn-drive {
       background: #2a2060;
       color: #e8dfc8;
@@ -99,16 +85,24 @@
       align-items: center;
       gap: 8px;
     }
-    .btn-drive svg { flex-shrink: 0; }
     #drive-status {
       font-size: 0.78rem;
       color: #7068a0;
       min-height: 1.2em;
       text-align: center;
+      padding: 0 16px;
     }
     #drive-status.error { color: #e06060; }
     #drive-status.ok    { color: #60c060; }
-
+    #game {
+      width: 100%;
+      aspect-ratio: 240 / 160;
+      background: #000;
+      border: 2px solid #3a2e5a;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 0 40px #7040ff44;
+    }
     .controls {
       margin-top: 16px;
       display: flex;
@@ -142,18 +136,16 @@
 </header>
 
 <div id="game-wrap">
-
-  <!-- Launch screen: shown until user picks a ROM source -->
   <div id="launch-screen">
     <h2>Select a ROM to play</h2>
     <div class="launch-btns">
       <button class="btn btn-primary" onclick="launchBuiltIn()">&#9654; Play Sygl</button>
       <button class="btn btn-drive" onclick="launchFromDrive()">
-        <svg width="18" height="18" viewBox="0 0 87.3 78" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="18" height="18" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
           <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L28.5 48H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
           <path d="M43.65 25L29 0c-1.35.8-2.5 1.9-3.3 3.3L1.2 43.5c-.8 1.4-1.2 2.95-1.2 4.5h28.5z" fill="#00ac47"/>
-          <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75L86.1 57c.8-1.4 1.2-2.95 1.2-4.5H58.8l6.1 11.4z" fill="#ea4335"/>
-          <path d="M43.65 25L58.3 0H28.99z" fill="#00832d"/>
+          <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75L86.1 57c.8-1.4 1.2-2.95 1.2-4.5H58.8z" fill="#ea4335"/>
+          <path d="M43.65 25L58.3 0H29z" fill="#00832d"/>
           <path d="M58.8 48l-15.15 28.8 14.65-28.8z" fill="#2684fc"/>
           <path d="M73.55 76.8L58.8 48H87.3c0 1.55-.4 3.1-1.2 4.5z" fill="#ffba00"/>
         </svg>
@@ -163,7 +155,6 @@
     <div id="drive-status"></div>
   </div>
 
-  <!-- EmulatorJS container — hidden until a ROM is ready -->
   <div id="game" style="display:none"></div>
 
   <div class="controls">
@@ -178,117 +169,95 @@
 
 <footer>Sygl &copy; knightdx91 &nbsp;&bull;&nbsp; Built with devkitARM &nbsp;&bull;&nbsp; Powered by EmulatorJS</footer>
 
-<!-- Google Identity Services -->
+<!-- Google Identity Services (sign-in + token) -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<!-- Google API client (for Drive download) -->
+<!-- Google API client (Drive download + Picker) -->
 <script src="https://apis.google.com/js/api.js" async defer></script>
-<!-- Google Picker API loaded on demand -->
 
 <script>
-  // -----------------------------------------------------------------------
-  // CONFIG — replace with your Google OAuth Client ID
-  // Create one at: https://console.cloud.google.com/apis/credentials
-  // Authorised JS origin: https://knightdx91-alt.github.io
-  // -----------------------------------------------------------------------
+  // ─────────────────────────────────────────────────────────────────────────
+  // CONFIG — only a Client ID is needed. No API key required.
+  //
+  // To create one (free):
+  //   1. Go to https://console.cloud.google.com/apis/credentials
+  //   2. Click "+ CREATE CREDENTIALS" → "OAuth client ID"
+  //   3. Application type: Web application
+  //   4. Authorised JavaScript origins: https://knightdx91-alt.github.io
+  //   5. Copy the Client ID below
+  //   6. Enable "Google Drive API" and "Google Picker API" in your project
+  // ─────────────────────────────────────────────────────────────────────────
   const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE';
-  const GOOGLE_API_KEY   = 'YOUR_GOOGLE_API_KEY_HERE'; // needed for Picker
-  const PICKER_SCOPE     = 'https://www.googleapis.com/auth/drive.readonly';
 
   let accessToken = null;
 
-  // -----------------------------------------------------------------------
-  // Launch built-in Sygl ROM
-  // -----------------------------------------------------------------------
   function launchBuiltIn() {
-    startEmulator('sygl.gba');
+    startEmulator('sygl.gba', 'Sygl');
   }
 
-  // -----------------------------------------------------------------------
-  // Google Drive flow
-  // -----------------------------------------------------------------------
   function launchFromDrive() {
-    setStatus('Signing in to Google…');
-
     if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID_HERE') {
-      setStatus('Google Client ID not configured. See web/index.html.', 'error');
+      setStatus('Google Client ID not set — see web/index.html comments.', 'error');
       return;
     }
-
+    setStatus('Signing in to Google…');
     const client = google.accounts.oauth2.initTokenClient({
       client_id: GOOGLE_CLIENT_ID,
-      scope: PICKER_SCOPE,
+      scope: 'https://www.googleapis.com/auth/drive.readonly',
       callback: (resp) => {
-        if (resp.error) {
-          setStatus('Sign-in failed: ' + resp.error, 'error');
-          return;
-        }
+        if (resp.error) { setStatus('Sign-in failed: ' + resp.error, 'error'); return; }
         accessToken = resp.access_token;
-        setStatus('Signed in. Opening Drive picker…');
-        loadPickerApi();
+        setStatus('Opening Drive picker…');
+        gapi.load('picker', openPicker);
       },
     });
     client.requestAccessToken({ prompt: 'consent' });
   }
 
-  function loadPickerApi() {
-    gapi.load('picker', () => openPicker());
-  }
-
   function openPicker() {
     const view = new google.picker.DocsView(google.picker.ViewId.DOCS)
-      .setQuery('.gba')
-      .setIncludeFolders(true);
+      .setIncludeFolders(true)
+      .setQuery('.gba');
 
-    const picker = new google.picker.PickerBuilder()
-      .setAppId(GOOGLE_CLIENT_ID.split('-')[0])
+    new google.picker.PickerBuilder()
       .setOAuthToken(accessToken)
-      .setDeveloperKey(GOOGLE_API_KEY)
       .addView(view)
-      .setTitle('Pick a GBA ROM from your Drive')
+      .setTitle('Pick a GBA ROM (.gba)')
       .setCallback(pickerCallback)
-      .build();
-
-    picker.setVisible(true);
+      .build()
+      .setVisible(true);
   }
 
   async function pickerCallback(data) {
-    if (data.action !== google.picker.Action.PICKED) return;
-
+    if (data.action !== google.picker.Action.PICKED) {
+      if (data.action === google.picker.Action.CANCEL) setStatus('');
+      return;
+    }
     const file = data.docs[0];
     setStatus('Downloading ' + file.name + '…');
-
     try {
       const resp = await fetch(
         `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
         { headers: { Authorization: 'Bearer ' + accessToken } }
       );
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
-
-      const blob = await resp.blob();
-      const url  = URL.createObjectURL(blob);
-      setStatus(file.name + ' loaded!', 'ok');
-      startEmulator(url, file.name);
+      const blob = URL.createObjectURL(await resp.blob());
+      setStatus(file.name + ' ready!', 'ok');
+      startEmulator(blob, file.name.replace(/\.gba$/i, ''));
     } catch (err) {
       setStatus('Download failed: ' + err.message, 'error');
     }
   }
 
-  // -----------------------------------------------------------------------
-  // Start EmulatorJS
-  // -----------------------------------------------------------------------
   function startEmulator(romUrl, romName) {
     document.getElementById('launch-screen').style.display = 'none';
-    const gameEl = document.getElementById('game');
-    gameEl.style.display = 'block';
-
-    window.EJS_player       = '#game';
-    window.EJS_core         = 'gba';
-    window.EJS_gameUrl      = romUrl;
-    window.EJS_gameName     = romName || 'sygl';
-    window.EJS_pathtodata   = 'https://cdn.emulatorjs.org/stable/data/';
-    window.EJS_color        = '#f5c842';
+    document.getElementById('game').style.display = 'block';
+    window.EJS_player        = '#game';
+    window.EJS_core          = 'gba';
+    window.EJS_gameUrl       = romUrl;
+    window.EJS_gameName      = romName || 'game';
+    window.EJS_pathtodata    = 'https://cdn.emulatorjs.org/stable/data/';
+    window.EJS_color         = '#f5c842';
     window.EJS_startOnLoaded = true;
-
     const s = document.createElement('script');
     s.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
     document.body.appendChild(s);
