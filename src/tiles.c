@@ -1,8 +1,10 @@
 #include "gba.h"
 #include "tiles.h"
-#include <gba_video.h>
-#include <gba_sprites.h>
-#include <string.h>
+
+/* Raw VRAM/palette addresses — portable across libgba versions */
+#define SPRITE_PALETTE  ((u16*)(0x05000200))
+#define CHARBLOCK(n)    ((u32*)(0x06000000 + (n)*0x4000))
+#define OBJ_CHARBLOCK   ((u32*)0x06010000)
 
 /* Build a 4bpp tile row: 8 pixels packed into a u32.
    Each pixel is 4 bits; pixel 0 in bits [3:0]. */
@@ -140,11 +142,11 @@ void tiles_init(void) {
 
     /* OBJ palette: sub-palette 0 */
     for (i = 0; i < 16; i++)
-        OBJ_PALETTE[i] = obj_pal[i];
+        SPRITE_PALETTE[i] = obj_pal[i];
 
     /* BG charblock 0: tiles 0-5 */
     {
-        u32 *dest = (u32 *)tile_mem[0];
+        u32 *dest = CHARBLOCK(0);
         int t;
         for (t = 0; t < 6; t++) {
             int r;
@@ -153,9 +155,9 @@ void tiles_init(void) {
         }
     }
 
-    /* OBJ charblock (tile_mem[4]): sprite tile 0 */
+    /* OBJ charblock (0x06010000): sprite tile 0 */
     {
-        u32 *dest = (u32 *)tile_mem[4];
+        u32 *dest = OBJ_CHARBLOCK;
         int r;
         for (r = 0; r < 8; r++)
             dest[r] = player_tile[r];
