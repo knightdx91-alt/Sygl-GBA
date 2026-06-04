@@ -8,4 +8,6 @@ PROJ_INCDIRS    := include $(BUTANO_HOME)/common
 PROJ_LIBRARIES  :=
 
 BUTANO_HOME     ?= butano/butano
+LIBBUTANO       := $(BUTANO_HOME)
+LIBBUTANOABS    := $(abspath $(LIBBUTANO))
 include $(BUTANO_HOME)/butano.mak
