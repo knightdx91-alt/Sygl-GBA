@@ -26,7 +26,7 @@ jobs:
           export DEVKITPRO=/opt/devkitpro
           export DEVKITARM=/opt/devkitpro/devkitARM
           export PATH=$DEVKITARM/bin:$DEVKITPRO/tools/bin:$PATH
-          export BUTANO_HOME=$PWD/butano
+          export BUTANO_HOME=$PWD/butano/butano
           make
 
       - name: Upload ROM artifact

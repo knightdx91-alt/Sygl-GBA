@@ -3,9 +3,9 @@ PROJ_TITLE      := Sygl
 PROJ_MAKER      := Dream
 PROJ_VERSION    := 0.0.1
 
-PROJ_SRCDIRS    := src $(BUTANO_HOME)/butano/common
-PROJ_INCDIRS    := include $(BUTANO_HOME)/butano/common
+PROJ_SRCDIRS    := src $(BUTANO_HOME)/common
+PROJ_INCDIRS    := include $(BUTANO_HOME)/common
 PROJ_LIBRARIES  :=
 
-BUTANO_HOME     ?= butano
-include $(BUTANO_HOME)/butano/butano.mak
+BUTANO_HOME     ?= butano/butano
+include $(BUTANO_HOME)/butano.mak
