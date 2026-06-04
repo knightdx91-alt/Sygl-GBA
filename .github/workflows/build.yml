@@ -21,6 +21,15 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Inspect butano submodule structure
+        run: |
+          echo "=== butano/ root ==="
+          ls butano/ | head -20
+          echo "=== butano/butano/ ==="
+          ls butano/butano/ | head -20
+          echo "=== First 20 lines of butano.mak ==="
+          head -20 butano/butano/butano.mak
+
       - name: Build sygl.gba
         run: |
           export DEVKITPRO=/opt/devkitpro
