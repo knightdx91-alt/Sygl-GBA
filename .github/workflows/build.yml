@@ -21,9 +21,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install GBA libraries
-        run: dkp-pacman -Sy --noconfirm gba-dev
-
       - name: Build sygl.gba
         run: |
           export DEVKITPRO=/opt/devkitpro
