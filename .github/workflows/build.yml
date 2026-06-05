@@ -7,19 +7,33 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - name: Install toolchain
+    - name: Install devkitPro / devkitARM
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential make git ca-certificates \
-          gcc-arm-none-eabi binutils-arm-none-eabi
-    - name: Build (explicit toolchain)
+        sudo apt-get install -y wget ca-certificates git curl
+        # Install devkitPro apt repo + installer
+        curl -L https://apt.devkitpro.org/install.sh | sudo bash
+        # Update package DB and install devkitARM (non-interactive)
+        sudo dkp-pacman -Syu --noconfirm
+        sudo dkp-pacman -S --noconfirm devkitARM
+    - name: Show environment & versions
       run: |
-        make WONDERFUL_TOOLCHAIN=1 \
-             CC=arm-none-eabi-gcc \
-             AR=arm-none-eabi-ar \
-             OBJCOPY=arm-none-eabi-objcopy \
-             CROSS_COMPILE=arm-none-eabi-
-    - name: Upload build
+        # ensure the environment provided by the installer is sourced
+        source /etc/profile.d/devkitpro.sh || true
+        echo "DEVKITPRO=$DEVKITPRO"
+        echo "DEVKITARM=$DEVKITARM"
+        if [ -n "$DEVKITARM" ]; then
+          "$DEVKITARM/toolchain/bin/arm-none-eabi-gcc" --version || true
+        else
+          arm-none-eabi-gcc --version || true
+        fi
+    - name: Build (devkitARM)
+      run: |
+        source /etc/profile.d/devkitpro.sh || true
+        git submodule update --init --recursive
+        # call make normally so the Makefiles detect DEVKITARM
+        make
+    - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
         name: build
