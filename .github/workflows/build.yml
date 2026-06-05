@@ -21,6 +21,19 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Debug butano structure
+        run: |
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITARM=/opt/devkitpro/devkitARM
+          export PATH=$DEVKITARM/bin:$DEVKITPRO/tools/bin:$PATH
+          export BUTANO_HOME=$PWD/butano/butano
+          echo "=== butano.mak ==="
+          cat $BUTANO_HOME/butano.mak
+          echo "=== common_setup.mak lines 80-100 ==="
+          sed -n '80,100p' $BUTANO_HOME/tools/common_setup.mak
+          echo "=== our Makefile ==="
+          cat Makefile
+
       - name: Build sygl.gba
         run: |
           export DEVKITPRO=/opt/devkitpro
