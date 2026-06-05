@@ -21,16 +21,13 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Debug - print butano files then exit
+      - name: Debug - print key butano mak files
         run: |
           export BUTANO_HOME=$PWD/butano/butano
-          echo "=== butano.mak ==="
-          cat $BUTANO_HOME/butano.mak
-          echo "=== common_setup.mak lines 80-100 ==="
-          sed -n '80,100p' $BUTANO_HOME/tools/common_setup.mak
-          echo "=== our Makefile ==="
-          cat Makefile
-          echo "=== DONE ==="
+          echo "=== common_setup.mak (lines 1-80) ==="
+          head -80 $BUTANO_HOME/tools/common_setup.mak
+          echo "=== butano_dka.mak (first 80 lines) ==="
+          head -80 $BUTANO_HOME/butano_dka.mak
           exit 1
 
   deploy-pages:
