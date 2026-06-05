@@ -1,13 +1,21 @@
 # DECISIONS
 
-## 2026-06-04 — Engine: Butano
-Switched from raw libgba C to Butano (C++17 framework over devkitARM).
-Reason: project scope (30hr JRPG, 5 endings, full crafting/allegiance systems) requires
-the abstractions Butano provides over raw GBA hardware.
+## Engine: Butano (C++17)
+Switched from raw libgba C. Butano provides hardware abstractions needed for a 30-hour JRPG scope (scene management, sprite/BG layers, audio, save).
 
-## 2026-06-04 — School name: The Heir's School
-Canonical name from the manuscript. Not "Sygldry Academy".
+## School name: The Heir's School
+Canonical name from the manuscript. Never "Sygldry Academy".
 
-## 2026-06-04 — NG+ unlock condition
-New Game Plus only available after completing the Ascension ending on Hard mode.
-Not available from Normal/Easy Ascension.
+## Sygl names: from the book
+Correct names: Duality, Waves, Terra, Tempus, Blood.
+Originators: Aren, Kenmei, Naisura, Raizen, Amelia.
+Not: Fire/Water/Earth/Air/Void — those were wrong.
+
+## NG+ unlock condition
+NG+ only after Ascension ending on Hard mode. Not from Normal/Easy Ascension.
+
+## Font strategy
+Using `FONTS := butano/template/fonts` to pick up `variable_8x16_sprite_font.bdf` from Butano's own template directory. If that path doesn't exist in the submodule, fall back to embedding font tile data directly in C++ as a `bn::sprite_font`.
+
+## Protagonist: Bal has no sygl
+Balthazaar is the story protagonist with no sigil (missing left hand). Player picks a sygl for their own character. Bal is a party member.
