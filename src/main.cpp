@@ -2,8 +2,7 @@
 #include "bn_color.h"
 #include "bn_bg_palettes.h"
 #include "bn_text.h"
-#include "bn_regular_bg_ptr.h"
-#include "bn_sprite_ptr.h"
+#include "bn_sprite_text_generator.h"
 #include "bn_sprites.h"
 
 int main()
@@ -13,8 +12,20 @@ int main()
     // Set transparent color for backgrounds
     bn::bg_palettes::set_transparent_color(bn::color(2, 4, 8));
     
-    // Create a simple test message
+    // Create a white color for text
     bn::color text_color(31, 31, 31); // White
+    
+    // Create sprite text generator for displaying text
+    bn::sprite_text_generator text_gen(bn::sprite_font());
+    text_gen.set_center(true);
+    
+    // Display "The Heir's School" at the center of the screen
+    auto text_sprites = text_gen.generate(120, 40, "The Heir's School");
+    
+    // Add the sprites to the screen
+    for (auto& sprite : text_sprites) {
+        bn::sprites::add(sprite);
+    }
     
     // Test the core loop and rendering
     int frame_count = 0;
@@ -23,9 +34,6 @@ int main()
     {
         frame_count++;
         bn::core::update();
-        
-        // Test passes if we can reach this point
-        // The blank screen with core initialization proves compilation works
     }
     
     return 0;
