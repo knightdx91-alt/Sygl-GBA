@@ -1,63 +1,18 @@
-name: Build & Deploy
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
+name: Build GBA ROM
+on: [push, pull_request]
 jobs:
-  build-rom:
+  build:
     runs-on: ubuntu-latest
-    container:
-      image: devkitpro/devkitarm:latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Build sygl.gba
-        run: |
-          export DEVKITPRO=/opt/devkitpro
-          export DEVKITARM=/opt/devkitpro/devkitARM
-          export PATH=$DEVKITARM/bin:$DEVKITPRO/tools/bin:$PATH
-          export BUTANO_HOME=$PWD/butano/butano
-          export PYTHON=python3
-          make
-
-      - name: Upload ROM artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sygl-gba-rom
-          path: sygl.gba
-          retention-days: 90
-
-  deploy-pages:
-    needs: build-rom
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download ROM artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: sygl-gba-rom
-          path: web/
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: web/
-
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Install toolchain
+      run: sudo apt-get update && sudo apt-get install -y build-essential make gcc-arm-none-eabi binutils-arm-none-eabi git
+    - name: Build
+      run: make
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: build
+        path: build/**
