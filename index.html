@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Blood Sygl - Prototype</title>
+    <style>
+        body { 
+            background-color: #121212; 
+            color: #ffffff; 
+            font-family: sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        #game-container { 
+            width: 100%; 
+            max-width: 720px; 
+            height: 480px; 
+            margin: 20px auto; 
+        }
+    </style>
+</head>
+<body>
+    <h2>The Blood Sygl - Early Prototype</h2>
+    <p>Loading GBA ROM...</p>
+    
+    <!-- This div is where the emulator will render the game -->
+    <div id="game-container">
+        <div id="game"></div>
+    </div>
+    
+    <!-- EmulatorJS scripts that turn your browser into a GBA -->
+    <script>
+        EJS_player = '#game';
+        EJS_core = 'gba';
+        EJS_gameUrl = 'sygl_test.gba'; 
+        EJS_pathtodata = 'https://cdn.emulatorjs.org/latest/data/';
+    </script>
+    <script src="https://cdn.emulatorjs.org/latest/data/loader.js"></script>
+</body>
+</html>
