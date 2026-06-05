@@ -11,7 +11,7 @@ INCLUDES        := include
 DATA            :=
 GRAPHICS        :=
 AUDIO           :=
-FONTS           := butano/butano/fonts
+FONTS           :=
 
 BUTANO_HOME     ?= butano/butano
 LIBBUTANO       := $(BUTANO_HOME)
