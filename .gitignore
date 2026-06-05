@@ -1,2 +1,6 @@
-/build/
-/saves/
+build/
+dist/
+*.o
+*.elf
+*.gba
+.DS_Store
