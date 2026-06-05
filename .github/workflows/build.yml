@@ -21,14 +21,20 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Debug - sources_setup and gba_rules
+      - name: Build sygl.gba
         run: |
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITARM=/opt/devkitpro/devkitARM
+          export PATH=$DEVKITARM/bin:$DEVKITPRO/tools/bin:$PATH
           export BUTANO_HOME=$PWD/butano/butano
-          echo "=== sources_setup.mak ==="
-          cat $BUTANO_HOME/tools/sources_setup.mak
-          echo "=== gba_rules grep BUILD ==="
-          grep -n 'BUILD' $DEVKITARM/gba_rules || echo 'not found'
-          exit 1
+          make
+
+      - name: Upload ROM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sygl-gba-rom
+          path: sygl.gba
+          retention-days: 90
 
   deploy-pages:
     needs: build-rom

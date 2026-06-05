@@ -3,6 +3,8 @@ PROJ_TITLE      := Sygl
 PROJ_MAKER      := Dream
 PROJ_VERSION    := 0.0.1
 
+BUILD           := build
+
 PROJ_SRCDIRS    := src
 PROJ_INCDIRS    := include
 PROJ_LIBRARIES  :=
