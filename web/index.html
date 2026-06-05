@@ -144,6 +144,43 @@
       padding: 4px 10px;
     }
     .controls strong { color: #c8b8f0; }
+    .build-info {
+      margin-top: 24px;
+      padding: 16px;
+      background: #1a1630;
+      border: 1px solid #3a2e5a;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: #a098b8;
+      text-align: center;
+    }
+    .build-info h3 {
+      color: #f5c842;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+    }
+    .build-status {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #60c060;
+    }
+    .status-dot.pending {
+      background: #f5c842;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
     footer {
       margin-top: auto;
       padding: 20px;
@@ -165,7 +202,7 @@
   <div id="launch-screen">
     <h2>Select a ROM to play</h2>
     <div class="launch-btns">
-      <button class="btn btn-primary" onclick="launchBuiltIn()">&#9654; Play Sygl</button>
+      <button class="btn btn-primary" onclick="launchBuiltIn()">&#9654; Play Sygl (Test Build)</button>
     </div>
 
     <div class="divider">or load your own ROM</div>
@@ -197,6 +234,19 @@
     </div>
 
     <div id="drive-status"></div>
+
+    <!-- Build Status Section -->
+    <div class="build-info">
+      <h3>📊 Build Status</h3>
+      <p>Phase 1: Engine Core — Butano Test ROM</p>
+      <div class="build-status">
+        <div class="status-dot"></div>
+        <span>Compilation Test Ready</span>
+      </div>
+      <p style="margin-top: 10px; font-size: 0.8rem; color: #7068a0;">
+        Updated: 2026-06-05 &nbsp;&bull;&nbsp; <a href="https://github.com/knightdx91-alt/Sygl-GBA" style="color: #c8b8f0; text-decoration: none;">View on GitHub</a>
+      </p>
+    </div>
   </div>
 
   <div id="game" style="display:none"></div>
@@ -211,7 +261,7 @@
   </div>
 </div>
 
-<footer>Sygl &copy; knightdx91 &nbsp;&bull;&nbsp; Built with devkitARM &nbsp;&bull;&nbsp; Powered by EmulatorJS</footer>
+<footer>Sygl &copy; knightdx91 &nbsp;&bull;&nbsp; Built with devkitARM &amp; Butano &nbsp;&bull;&nbsp; Powered by EmulatorJS</footer>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -221,10 +271,10 @@
   let accessToken = null;
 
   function launchBuiltIn() {
-    startEmulator('sygl.gba', 'Sygl');
+    startEmulator('sygl.gba', 'Sygl Test Build');
   }
 
-  // ── Local file ──────────────────────────────────────────────────────────
+  // ── Local file ─────────────────────────────────────────────────────────
   function launchFromFile(input) {
     const file = input.files[0];
     if (!file) return;
@@ -232,7 +282,7 @@
     startEmulator(url, file.name.replace(/\.(gba|gbc|gb)$/i, ''));
   }
 
-  // ── Google Drive ─────────────────────────────────────────────────────────
+  // ── Google Drive ────────────────────────────────────────────────────────
   function launchFromDrive() {
     setStatus('Signing in to Google…');
     const client = google.accounts.oauth2.initTokenClient({
@@ -282,7 +332,7 @@
     }
   }
 
-  // ── EmulatorJS ───────────────────────────────────────────────────────────
+  // ── EmulatorJS ─────────────────────────────────────────────────────────
   function startEmulator(romUrl, romName) {
     document.getElementById('launch-screen').style.display = 'none';
     document.getElementById('game').style.display = 'block';
