@@ -1,34 +1,17 @@
-#---------------------------------------------------------------------------------------------------------------------
 TARGET      :=  sygl_test
 BUILD       :=  build
-LIBBUTANO   :=  butano/butano
+# This is the path INSIDE the Docker container
+LIBBUTANO   :=  /project/butano/butano
 PYTHON      :=  python
 SOURCES     :=  src
 INCLUDES    :=  include
-DATA        :=
+DATA        :=  graphics
 GRAPHICS    :=  graphics
 AUDIO       :=  audio
 DMGAUDIO    :=  dmg_audio
 ROMTITLE    :=  SYGL TEST
 ROMCODE     :=  SYGL
-USERFLAGS   :=  
-USERASFLAGS :=  
-USERLDFLAGS :=  
-USERLIBDIRS :=  
-USERLIBS    :=  
-USERBUILD   :=  
-EXTTOOL     :=  
 
-#---------------------------------------------------------------------------------------------------------------------
-# Export absolute butano path:
-#---------------------------------------------------------------------------------------------------------------------
-ifndef LIBBUTANO
-    $(error "Please set LIBBUTANO in your makefile")
-endif
+export LIBBUTANOABS := $(LIBBUTANO)
 
-export LIBBUTANOABS := $(realpath $(LIBBUTANO))
-
-#---------------------------------------------------------------------------------------------------------------------
-# Include main makefile:
-#---------------------------------------------------------------------------------------------------------------------
 include $(LIBBUTANOABS)/butano.mak

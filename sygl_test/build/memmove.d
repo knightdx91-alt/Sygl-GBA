@@ -1,0 +1,1 @@
+memmove.o: /project/butano/butano/hw/3rd_party/agbabi/src/memmove.s
