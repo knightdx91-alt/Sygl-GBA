@@ -21,13 +21,13 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Debug - print key butano mak files
+      - name: Debug - sources_setup and gba_rules
         run: |
           export BUTANO_HOME=$PWD/butano/butano
-          echo "=== common_setup.mak (lines 1-80) ==="
-          head -80 $BUTANO_HOME/tools/common_setup.mak
-          echo "=== butano_dka.mak (first 80 lines) ==="
-          head -80 $BUTANO_HOME/butano_dka.mak
+          echo "=== sources_setup.mak ==="
+          cat $BUTANO_HOME/tools/sources_setup.mak
+          echo "=== gba_rules grep BUILD ==="
+          grep -n 'BUILD' $DEVKITARM/gba_rules || echo 'not found'
           exit 1
 
   deploy-pages:
