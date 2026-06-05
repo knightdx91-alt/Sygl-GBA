@@ -6,9 +6,11 @@ PROJ_VERSION    := 0.0.1
 BUILD           := build
 TARGET          := $(PROJ_NAME)
 
-PROJ_SRCDIRS    := src
-PROJ_INCDIRS    := include
-PROJ_LIBRARIES  :=
+SOURCES         := src
+INCLUDES        := include
+DATA            :=
+GRAPHICS        :=
+AUDIO           :=
 
 BUTANO_HOME     ?= butano/butano
 LIBBUTANO       := $(BUTANO_HOME)
