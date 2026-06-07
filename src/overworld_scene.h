@@ -71,6 +71,17 @@ private:
     bn::vector<bn::sprite_ptr, 32> _hud_sprites;
     int _last_hp = -1;
 
+    // Movement repeat (held directional)
+    int _move_timer  = 0;
+    int _move_dx     = 0;
+    int _move_dy     = 0;
+
+    // Pause / start menu
+    bool _paused = false;
+    bn::vector<bn::sprite_ptr, 48> _pause_sprites;
+    void open_pause_menu();
+    void close_pause_menu();
+
     // Combat transition
     EnemyType _pending_enemy = EnemyType::BANDIT;
 };

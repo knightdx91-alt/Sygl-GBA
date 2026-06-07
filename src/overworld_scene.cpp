@@ -1,4 +1,6 @@
 #include "overworld_scene.h"
+#include "item_data.h"
+#include "character.h"
 #include "bn_keypad.h"
 #include "bn_bg_palettes.h"
 #include "bn_color.h"
@@ -114,11 +116,49 @@ OverworldResult OverworldScene::update()
         return OverworldResult::STAY;
     }
 
-    // Movement
-    if (bn::keypad::left_pressed())  try_move(-1,  0);
-    if (bn::keypad::right_pressed()) try_move( 1,  0);
-    if (bn::keypad::up_pressed())    try_move( 0, -1);
-    if (bn::keypad::down_pressed())  try_move( 0,  1);
+    // Pause menu
+    if (bn::keypad::start_pressed())
+    {
+        if (_paused) close_pause_menu();
+        else         open_pause_menu();
+        return OverworldResult::STAY;
+    }
+    if (_paused)
+    {
+        if (bn::keypad::b_pressed()) close_pause_menu();
+        return OverworldResult::STAY;
+    }
+
+    // Movement with held-repeat (12 frame initial delay, then every 5 frames)
+    int dx = 0, dy = 0;
+    if      (bn::keypad::left_held())  { dx = -1; dy =  0; }
+    else if (bn::keypad::right_held()) { dx =  1; dy =  0; }
+    else if (bn::keypad::up_held())    { dx =  0; dy = -1; }
+    else if (bn::keypad::down_held())  { dx =  0; dy =  1; }
+
+    if (dx != 0 || dy != 0)
+    {
+        bool direction_changed = (dx != _move_dx || dy != _move_dy);
+        _move_dx = dx;
+        _move_dy = dy;
+        if (direction_changed)
+        {
+            _move_timer = 0;
+            try_move(dx, dy);
+        }
+        else
+        {
+            _move_timer++;
+            if (_move_timer >= 12 && (_move_timer - 12) % 5 == 0)
+                try_move(dx, dy);
+        }
+    }
+    else
+    {
+        _move_dx = 0;
+        _move_dy = 0;
+        _move_timer = 0;
+    }
 
     // Check if we stepped on an enemy
     OverworldResult contact = check_enemy_contact();
@@ -266,4 +306,74 @@ void OverworldScene::render_hud()
     if (hm >= 10)  hud.push_back('0' + (hm / 10) % 10);
     hud.push_back('0' + hm % 10);
     _gen.generate(-116, -72, hud, _hud_sprites);
+}
+
+// ── Pause menu ────────────────────────────────────────────────────────────────
+
+static void append_int(bn::string<32>& s, int v)
+{
+    if (v < 0) { s.push_back('-'); v = -v; }
+    if (v >= 100) s.push_back('0' + v / 100);
+    if (v >= 10)  s.push_back('0' + (v / 10) % 10);
+    s.push_back('0' + v % 10);
+}
+
+void OverworldScene::open_pause_menu()
+{
+    _paused = true;
+    _pause_sprites.clear();
+    _gen.set_center_alignment();
+
+    const Character& pc = _state.party.player();
+
+    _gen.generate(0, -68, bn::string_view("─ STATUS ─"), _pause_sprites);
+
+    // Name + Level
+    bn::string<32> line;
+    line.append(bn::string_view(pc.name));
+    line.append(bn::string_view("  Lv"));
+    append_int(line, pc.level);
+    _gen.generate(0, -48, line, _pause_sprites);
+
+    // HP
+    line.clear();
+    line.append(bn::string_view("HP "));
+    append_int(line, pc.hp);
+    line.push_back('/');
+    append_int(line, pc.eff_hp_max());
+    _gen.generate(0, -28, line, _pause_sprites);
+
+    // MP
+    line.clear();
+    line.append(bn::string_view("MP "));
+    append_int(line, pc.mp);
+    line.push_back('/');
+    append_int(line, pc.eff_mp_max());
+    _gen.generate(0, -8, line, _pause_sprites);
+
+    // ATK / DEF
+    line.clear();
+    line.append(bn::string_view("ATK "));
+    append_int(line, pc.eff_atk());
+    line.append(bn::string_view("  DEF "));
+    append_int(line, pc.eff_def());
+    _gen.generate(0, 12, line, _pause_sprites);
+
+    // Spells header
+    _gen.generate(0, 32, bn::string_view("Spells:"), _pause_sprites);
+
+    // Up to 3 spells
+    for (int i = 0; i < pc.spell_count && i < 3; ++i)
+    {
+        const SpellDef& sp = spell_def(pc.known_spells[i]);
+        _gen.generate(0, 48 + i * 16, bn::string_view(sp.name), _pause_sprites);
+    }
+
+    _gen.generate(0, 72, bn::string_view("B/Start to close"), _pause_sprites);
+}
+
+void OverworldScene::close_pause_menu()
+{
+    _paused = false;
+    _pause_sprites.clear();
 }
