@@ -4,3 +4,4 @@ dist/
 *.elf
 *.gba
 .DS_Store
+__pycache__/
