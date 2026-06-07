@@ -43,8 +43,8 @@ private:
 
     // NPCs (3 total) — sprite + tile position
     static constexpr int NPC_COUNT = 3;
-    static constexpr int NPC_TILE_X[NPC_COUNT];
-    static constexpr int NPC_TILE_Y[NPC_COUNT];
+    static constexpr int NPC_TILE_X[NPC_COUNT] = {  8, 16, 24 };
+    static constexpr int NPC_TILE_Y[NPC_COUNT] = { 12,  8, 12 };
     bn::optional<bn::sprite_ptr> _npc_sprite[NPC_COUNT];
 
     // Enemies (2 types, 2 placements) — public for main.cpp lookup

@@ -1,4 +1,5 @@
 #include "bn_core.h"
+#include "bn_keypad.h"
 #include "bn_bg_palettes.h"
 #include "bn_color.h"
 #include "bn_vector.h"

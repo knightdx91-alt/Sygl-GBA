@@ -15,9 +15,6 @@
 
 // ── Static layout data ────────────────────────────────────────────────────────
 
-constexpr int OverworldScene::NPC_TILE_X[NPC_COUNT]    = {  8, 16, 24 };
-constexpr int OverworldScene::NPC_TILE_Y[NPC_COUNT]    = { 12,  8, 12 };
-
 constexpr EnemyType OverworldScene::ENEMY_TYPE[ENEMY_COUNT] = {
     EnemyType::BANDIT, EnemyType::WOLF };
 
