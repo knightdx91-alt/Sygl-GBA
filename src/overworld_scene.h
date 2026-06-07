@@ -28,7 +28,7 @@ private:
     void open_npc_dialogue(int npc_id);
     void open_choice_for_npc(int npc_id);
 
-    void check_enemy_contact();
+    OverworldResult check_enemy_contact();
     void render_hud();
 
     GameState& _state;
@@ -39,7 +39,7 @@ private:
     int _floor_tile_index = 0;
 
     // Player sprite
-    bn::sprite_ptr _player_sprite;
+    bn::optional<bn::sprite_ptr> _player_sprite;
 
     // NPCs (3 total) — sprite + tile position
     static constexpr int NPC_COUNT = 3;

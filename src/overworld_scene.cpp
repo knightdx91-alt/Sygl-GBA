@@ -15,9 +15,6 @@
 
 // ── Static layout data ────────────────────────────────────────────────────────
 
-constexpr EnemyType OverworldScene::ENEMY_TYPE[ENEMY_COUNT] = {
-    EnemyType::BANDIT, EnemyType::WOLF };
-
 // ── NPC dialogue data ─────────────────────────────────────────────────────────
 
 static const bn::string_view NPC0_INTRO[] = {
@@ -106,7 +103,7 @@ OverworldResult OverworldScene::update()
             if (_active_npc == 0)
                 _text_box.open(_gen,
                     result == 0 ? NPC0_YES : NPC0_NO,
-                    result == 0 ? 3 : 3);
+                    3);
         }
         return OverworldResult::STAY;
     }
@@ -158,7 +155,7 @@ void OverworldScene::try_move(int dx, int dy)
     _state.tile_y = ny;
     int sx, sy;
     screen_pos(nx, ny, sx, sy);
-    _player_sprite.set_position(sx, sy);
+    _player_sprite->set_position(sx, sy);
 }
 
 bool OverworldScene::tile_walkable(int tx, int ty) const
