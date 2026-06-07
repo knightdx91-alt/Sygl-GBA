@@ -6,7 +6,7 @@
 #include "bn_fixed.h"
 #include "bn_sprite_text_generator.h"
 #include "bn_vector.h"
-#include "common_fixed_8x8_sprite_font.h"
+#include "common_fixed_8x8_font.h"
 
 // Phase 1 title screen: text rendered via Butano sprite text generator.
 int main()
@@ -17,7 +17,7 @@ int main()
     bn::bg_palettes::set_transparent_color(bn::color(2, 4, 8));
 
     // Set up text generator using the bundled fixed 8x8 font
-    bn::sprite_text_generator text_gen(common::fixed_8x8_sprite_font);
+    bn::sprite_text_generator text_gen(common::fixed_8x8_font);
     text_gen.set_center_alignment();
 
     bn::vector<bn::sprite_ptr, 8>  title_sprites;   // "SYGL"
