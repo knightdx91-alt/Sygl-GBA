@@ -4,6 +4,7 @@
 #include "bn_color.h"
 #include "bn_string.h"
 #include "bn_fixed_point.h"
+#include "bn_math.h"
 #include "bn_regular_bg_map_cell_info.h"
 #include "common_variable_8x16_sprite_font.h"
 #include "bn_sprite_items_player.h"
@@ -318,8 +319,8 @@ void OrphanageScene::update_camera()
     // tile_to_world(t) = t*8 - 128. Clamp so screen (240×160) stays inside map:
     //   world x clamp: [-128+120, 128-120] = [-8, 8]
     //   world y clamp: [-128+80,  128-80]  = [-48, 48]
-    bn::fixed wx = bn::fixed(tile_to_world(_state.tile_x)).clamp(-8, 8);
-    bn::fixed wy = bn::fixed(tile_to_world(_state.tile_y)).clamp(-48, 48);
+    bn::fixed wx = bn::clamp(bn::fixed(tile_to_world(_state.tile_x)), bn::fixed(-8), bn::fixed(8));
+    bn::fixed wy = bn::clamp(bn::fixed(tile_to_world(_state.tile_y)), bn::fixed(-48), bn::fixed(48));
     _camera.set_position(wx, wy);
 }
 
