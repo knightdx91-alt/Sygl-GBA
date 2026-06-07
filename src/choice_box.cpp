@@ -1,5 +1,6 @@
 #include "choice_box.h"
 #include "bn_keypad.h"
+#include "bn_string.h"
 
 static constexpr int PROMPT_Y  = 36;
 static constexpr int OPTION_AY = 52;

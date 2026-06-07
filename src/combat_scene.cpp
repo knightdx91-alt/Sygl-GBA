@@ -9,13 +9,13 @@
 #include "bn_sprite_items_enemy_wolf.h"
 
 // Simple deterministic "random" using a counter
-static int g_rng = 1;
+static unsigned int g_rng = 12345u;
 static int rng_next(int min, int max)
 {
-    g_rng = g_rng * 6364136223846793005LL + 1442695040888963407LL;
+    g_rng = g_rng * 1664525u + 1013904223u;  // Numerical Recipes LCG
     int range = max - min + 1;
     if (range <= 0) return min;
-    return min + ((unsigned)g_rng >> 16) % range;
+    return min + (int)(g_rng >> 16) % range;
 }
 
 CombatScene::CombatScene(GameState& state, EnemyType enemy_type)
@@ -141,13 +141,8 @@ void CombatScene::render_all()
     _gen.set_center_alignment();
 
     // Title bar
-    const EnemyStats& es = enemy_stats(_enemy_type);
-    bn::string<32> title;
-    title.append(bn::string_view("VS "));
-    for (char c = *es.name; c; c = *++es.name) title.push_back(c);
-    // Workaround: es.name is const char*
     const char* ename = enemy_stats(_enemy_type).name;
-    title.clear();
+    bn::string<32> title;
     title.append(bn::string_view("VS "));
     for (int i = 0; ename[i]; ++i) title.push_back(ename[i]);
     _gen.generate(0, -72, title, _sprites);
