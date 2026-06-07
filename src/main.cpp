@@ -34,6 +34,7 @@ int main()
     GameState state;
 
     // ── Title screen ──────────────────────────────────────────────────────────
+    bool is_new_game = false;
     {
         TitleScene title(save_data::has_any_save());
         while (!title.done())
@@ -42,7 +43,9 @@ int main()
             bn::core::update();
         }
 
-        if (title.chose_new_game())
+        is_new_game = title.chose_new_game();
+
+        if (is_new_game)
         {
             state.party.init_default();
             SaveSlot fresh = {};
@@ -86,7 +89,7 @@ int main()
     }
 
     // ── Orphanage prologue (new game only) ───────────────────────────────────
-    if (title.chose_new_game())
+    if (is_new_game)
     {
         OrphanageScene orphanage(state);
         OrphanageResult o_result = OrphanageResult::STAY;
