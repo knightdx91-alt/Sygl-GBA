@@ -73,9 +73,8 @@ OrphanageScene::OrphanageScene(GameState& state)
     _state.tile_x = 15;
     _state.tile_y = 16;
 
-    int sx, sy;
-    screen_pos(_state.tile_x, _state.tile_y, sx, sy);
-    _player_sprite = bn::sprite_items::player.create_sprite(sx, sy);
+    // Spawn player at (0,0); switch_room → update_camera will reposition
+    _player_sprite = bn::sprite_items::player.create_sprite(0, 0);
 
     switch_room(ORoom::CORRIDOR, _state.tile_x, _state.tile_y);
 }
@@ -174,6 +173,7 @@ OrphanageResult OrphanageScene::update()
     _player_sprite->set_tiles(bn::sprite_items::player.tiles_item(), tile_index);
 
     check_transitions();
+    update_camera();
     check_npc_proximity();
     if (_near_npc >= 0 && bn::keypad::a_pressed())
         open_npc_dialogue(_near_npc);
@@ -237,10 +237,7 @@ void OrphanageScene::switch_room(ORoom to, int px, int py)
     bn::regular_bg_map_cell floor_cell = map_item_ptr->cell(2, 2);
     _floor_tile_index = bn::regular_bg_map_cell_info(floor_cell).tile_index();
 
-    // Reposition player sprite
-    int sx, sy;
-    screen_pos(px, py, sx, sy);
-    _player_sprite->set_position(sx, sy);
+    update_camera();
 }
 
 // ── Transitions ───────────────────────────────────────────────────────────────
@@ -292,9 +289,6 @@ void OrphanageScene::try_move(int dx, int dy)
 
     _state.tile_x = nx;
     _state.tile_y = ny;
-    int sx, sy;
-    screen_pos(nx, ny, sx, sy);
-    _player_sprite->set_position(sx, sy);
 }
 
 bool OrphanageScene::tile_walkable(int tx, int ty) const
@@ -315,8 +309,44 @@ bool OrphanageScene::tile_walkable(int tx, int ty) const
 
 void OrphanageScene::screen_pos(int tx, int ty, int& sx, int& sy) const
 {
-    sx = tx * 8 - 124;
-    sy = ty * 8 - 124;
+    // Convert tile coords to screen coords using current camera offset.
+    // Sprites use centre-of-screen as (0,0); GBA screen = 240×160.
+    sx = tx * 8 - _cam_x - 120;
+    sy = ty * 8 - _cam_y -  80;
+}
+
+void OrphanageScene::update_camera()
+{
+    // Map is 32×32 tiles = 256×256 world-px. Screen = 240×160.
+    // Scroll BG so the player tile is centred. Clamp so we never show outside map.
+    int px = _state.tile_x * 8;
+    int py = _state.tile_y * 8;
+
+    _cam_x = px - 120;
+    _cam_y = py -  80;
+
+    // Clamp: cam must stay inside [0, mapW-screenW] × [0, mapH-screenH]
+    if (_cam_x < 0)  _cam_x = 0;
+    if (_cam_x > 16) _cam_x = 16;   // 256 - 240
+    if (_cam_y < 0)  _cam_y = 0;
+    if (_cam_y > 96) _cam_y = 96;   // 256 - 160
+
+    if (_bg) _bg->set_position(_cam_x, _cam_y);
+
+    // Reposition player sprite
+    int sx, sy;
+    screen_pos(_state.tile_x, _state.tile_y, sx, sy);
+    if (_player_sprite) _player_sprite->set_position(sx, sy);
+
+    // Reposition NPC sprites
+    for (int i = 0; i < _npc_count; ++i)
+    {
+        if (_npc_sprite[i])
+        {
+            screen_pos(_npc_tile_x[i], _npc_tile_y[i], sx, sy);
+            _npc_sprite[i]->set_position(sx, sy);
+        }
+    }
 }
 
 // ── NPC proximity ─────────────────────────────────────────────────────────────

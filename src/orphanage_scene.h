@@ -33,6 +33,7 @@ private:
 
     void switch_room(ORoom to, int px, int py);
     void check_transitions();
+    void update_camera();
 
     void check_npc_proximity();
     void update_dialogue();
@@ -76,7 +77,11 @@ private:
 
     // Walk animation
     int _anim_dir    = ANIM_DIR_DOWN;
-    int _anim_frame  = 0;      // 0-3 within direction
-    int _anim_timer  = 0;      // counts up to ANIM_SPEED
+    int _anim_frame  = 0;
+    int _anim_timer  = 0;
     bool _is_moving  = false;
+
+    // Camera (world pixels, clamped to map bounds)
+    int _cam_x = 0;
+    int _cam_y = 0;
 };
