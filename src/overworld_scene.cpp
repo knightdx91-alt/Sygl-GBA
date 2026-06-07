@@ -130,9 +130,10 @@ OverworldResult OverworldScene::update()
         open_npc_dialogue(_near_npc);
 
     // HUD refresh
-    if (_state.hp != _last_hp)
+    int cur_hp = _state.party.player().hp;
+    if (cur_hp != _last_hp)
     {
-        _last_hp = _state.hp;
+        _last_hp = cur_hp;
         render_hud();
     }
 
@@ -254,13 +255,13 @@ void OverworldScene::render_hud()
     bn::string<24> hud;
     hud.append(bn::string_view("HP "));
     // Simple number append
-    int hp = _state.hp;
+    int hp = _state.party.player().hp;
     if (hp < 0) hp = 0;
     if (hp >= 100) hud.push_back('0' + hp / 100);
     if (hp >= 10)  hud.push_back('0' + (hp / 10) % 10);
     hud.push_back('0' + hp % 10);
     hud.append(bn::string_view("/"));
-    int hm = _state.hp_max;
+    int hm = _state.party.player().eff_hp_max();
     if (hm >= 100) hud.push_back('0' + hm / 100);
     if (hm >= 10)  hud.push_back('0' + (hm / 10) % 10);
     hud.push_back('0' + hm % 10);

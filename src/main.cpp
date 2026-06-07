@@ -45,7 +45,8 @@ int main()
             SaveSlot fresh = {};
             fresh.level = 1;
             fresh.hp_max = 20;
-            fresh.mp_max = 10;
+            fresh.mp_max = 12;
+            state.party.init_default();
             fresh.location_id = 1;
             save_data::write_slot(0, fresh);
         }
