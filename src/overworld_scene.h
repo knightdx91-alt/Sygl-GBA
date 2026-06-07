@@ -76,13 +76,19 @@ private:
     int _move_dx     = 0;
     int _move_dy     = 0;
 
-    // Pause / start menu
-    bool _paused     = false;
-    int  _pause_page = 0;   // 0 = Stats, 1 = Items
-    bn::vector<bn::sprite_ptr, 64> _pause_sprites;
-    void open_pause_menu();
-    void close_pause_menu();
-    void render_pause_page();
+    // FF-style menu
+    enum class MenuSub { NONE, ITEMS, MAGIC, STATUS };
+    bool    _paused      = false;
+    int     _menu_cursor = 0;   // 0=Items 1=Magic 2=Status 3=Save 4=Close
+    int     _sub_cursor  = 0;
+    MenuSub _menu_sub    = MenuSub::NONE;
+    bn::vector<bn::sprite_ptr, 96> _menu_sprites;
+    void open_menu();
+    void close_menu();
+    void render_menu();
+    void render_sub_items();
+    void render_sub_magic();
+    void render_sub_status();
 
     // Combat transition
     EnemyType _pending_enemy = EnemyType::BANDIT;

@@ -116,20 +116,56 @@ OverworldResult OverworldScene::update()
         return OverworldResult::STAY;
     }
 
-    // Pause menu
+    // FF-style menu
     if (bn::keypad::start_pressed())
     {
-        if (_paused) close_pause_menu();
-        else         open_pause_menu();
+        if (_paused) close_menu();
+        else         open_menu();
         return OverworldResult::STAY;
     }
     if (_paused)
     {
-        if (bn::keypad::b_pressed()) { close_pause_menu(); return OverworldResult::STAY; }
-        if (bn::keypad::left_pressed() || bn::keypad::right_pressed())
+        // Sub-screen active — B returns to main menu
+        if (_menu_sub != MenuSub::NONE)
         {
-            _pause_page = 1 - _pause_page;
-            render_pause_page();
+            if (bn::keypad::b_pressed())
+            {
+                _menu_sub = MenuSub::NONE;
+                _sub_cursor = 0;
+                render_menu();
+            }
+            else if (_menu_sub == MenuSub::ITEMS || _menu_sub == MenuSub::MAGIC)
+            {
+                // scroll sub-list
+                int max_items = (_menu_sub == MenuSub::ITEMS)
+                    ? _state.party.inventory.count
+                    : _state.party.player().spell_count;
+                if (bn::keypad::up_pressed()   && _sub_cursor > 0)          { _sub_cursor--; render_menu(); }
+                if (bn::keypad::down_pressed()  && _sub_cursor < max_items-1) { _sub_cursor++; render_menu(); }
+            }
+            return OverworldResult::STAY;
+        }
+
+        // Main menu navigation
+        static constexpr int MENU_OPTIONS = 5;
+        if (bn::keypad::up_pressed())   { _menu_cursor = (_menu_cursor + MENU_OPTIONS - 1) % MENU_OPTIONS; render_menu(); }
+        if (bn::keypad::down_pressed()) { _menu_cursor = (_menu_cursor + 1) % MENU_OPTIONS;                render_menu(); }
+        if (bn::keypad::b_pressed() || (bn::keypad::a_pressed() && _menu_cursor == 4))
+        {
+            close_menu();
+            return OverworldResult::STAY;
+        }
+        if (bn::keypad::a_pressed())
+        {
+            if (_menu_cursor == 0) { _menu_sub = MenuSub::ITEMS;  _sub_cursor = 0; render_menu(); }
+            if (_menu_cursor == 1) { _menu_sub = MenuSub::MAGIC;  _sub_cursor = 0; render_menu(); }
+            if (_menu_cursor == 2) { _menu_sub = MenuSub::STATUS; render_menu(); }
+            if (_menu_cursor == 3)
+            {
+                // Save placeholder
+                _menu_sub = MenuSub::STATUS; // reuse STATUS area to show "Saved!"
+                render_menu();
+            }
         }
         return OverworldResult::STAY;
     }
@@ -313,7 +349,7 @@ void OverworldScene::render_hud()
     _gen.generate(-116, -72, hud, _hud_sprites);
 }
 
-// ── Pause menu ────────────────────────────────────────────────────────────────
+// ── FF-style menu ─────────────────────────────────────────────────────────────
 
 static void append_int(bn::string<32>& s, int v)
 {
@@ -323,91 +359,178 @@ static void append_int(bn::string<32>& s, int v)
     s.push_back('0' + v % 10);
 }
 
-void OverworldScene::open_pause_menu()
+void OverworldScene::open_menu()
 {
-    _paused = true;
-    _pause_page = 0;
-    render_pause_page();
+    _paused      = true;
+    _menu_cursor = 0;
+    _menu_sub    = MenuSub::NONE;
+    _sub_cursor  = 0;
+    render_menu();
 }
 
-void OverworldScene::render_pause_page()
+void OverworldScene::close_menu()
 {
-    _pause_sprites.clear();
-    _gen.set_center_alignment();
+    _paused = false;
+    _menu_sprites.clear();
+}
 
-    const Character& pc = _state.party.player();
+// Layout: left panel (char info) x=-116..-10, right panel (menu) x=10..116
+// y grid: -72,-56,-40,-24,-8,8,24,40,56,72  (16px steps)
+void OverworldScene::render_menu()
+{
+    _menu_sprites.clear();
+    const Character& pc  = _state.party.player();
     const Inventory& inv = _state.party.inventory;
 
-    if (_pause_page == 0)
+    // ── Header ──────────────────────────────────────────────────────
+    _gen.set_center_alignment();
+    _gen.generate(0, -72, bn::string_view("* MENU *"), _menu_sprites);
+
+    if (_menu_sub == MenuSub::NONE)
     {
-        // ── Stats page ────────────────────────────────────────────────
-        _gen.generate(0, -68, bn::string_view("STATUS  >/< Items"), _pause_sprites);
+        // ── Left panel: character card ───────────────────────────────
+        _gen.set_left_alignment();
 
-        bn::string<32> line;
-        line.append(bn::string_view(pc.name));
-        line.append(bn::string_view("  Lv"));
-        append_int(line, pc.level);
-        _gen.generate(0, -50, line, _pause_sprites);
+        bn::string<32> ln;
+        ln.append(bn::string_view(pc.name));
+        _gen.generate(-116, -52, ln, _menu_sprites);
 
-        line.clear();
-        line.append(bn::string_view("HP "));
-        append_int(line, pc.hp);
-        line.push_back('/');
-        append_int(line, pc.eff_hp_max());
-        _gen.generate(0, -32, line, _pause_sprites);
+        ln.clear();
+        ln.append(bn::string_view("Lv "));
+        append_int(ln, pc.level);
+        _gen.generate(-116, -36, ln, _menu_sprites);
 
-        line.clear();
-        line.append(bn::string_view("MP "));
-        append_int(line, pc.mp);
-        line.push_back('/');
-        append_int(line, pc.eff_mp_max());
-        _gen.generate(0, -14, line, _pause_sprites);
+        ln.clear();
+        ln.append(bn::string_view("HP "));
+        append_int(ln, pc.hp);
+        ln.push_back('/');
+        append_int(ln, pc.eff_hp_max());
+        _gen.generate(-116, -20, ln, _menu_sprites);
 
-        line.clear();
-        line.append(bn::string_view("ATK "));
-        append_int(line, pc.eff_atk());
-        line.append(bn::string_view("  DEF "));
-        append_int(line, pc.eff_def());
-        _gen.generate(0, 4, line, _pause_sprites);
+        ln.clear();
+        ln.append(bn::string_view("MP "));
+        append_int(ln, pc.mp);
+        ln.push_back('/');
+        append_int(ln, pc.eff_mp_max());
+        _gen.generate(-116, -4, ln, _menu_sprites);
 
-        _gen.generate(0, 24, bn::string_view("Spells:"), _pause_sprites);
-        for (int i = 0; i < pc.spell_count && i < 3; ++i)
+        ln.clear();
+        ln.append(bn::string_view("XP "));
+        append_int(ln, pc.xp);
+        ln.push_back('/');
+        append_int(ln, pc.xp_next);
+        _gen.generate(-116, 12, ln, _menu_sprites);
+
+        // ── Right panel: menu options ────────────────────────────────
+        static const bn::string_view OPTIONS[] = {
+            "Items", "Magic", "Status", "Save", "Close"
+        };
+        for (int i = 0; i < 5; ++i)
         {
-            const SpellDef& sp = spell_def(pc.known_spells[i]);
-            _gen.generate(0, 40 + i * 16, bn::string_view(sp.name), _pause_sprites);
+            ln.clear();
+            ln.append(bn::string_view(i == _menu_cursor ? "> " : "  "));
+            for (char c : OPTIONS[i]) ln.push_back(c);
+            _gen.set_left_alignment();
+            _gen.generate(20, -52 + i * 20, ln, _menu_sprites);
         }
-    }
-    else
-    {
-        // ── Items page ────────────────────────────────────────────────
-        _gen.generate(0, -68, bn::string_view("Stats </> ITEMS"), _pause_sprites);
 
+        _gen.set_center_alignment();
+        _gen.generate(0, 68, bn::string_view("A:Select  B:Close"), _menu_sprites);
+    }
+    else if (_menu_sub == MenuSub::ITEMS)
+    {
+        // ── Items sub-screen ─────────────────────────────────────────
+        _gen.set_center_alignment();
+        _gen.generate(0, -52, bn::string_view("[ ITEMS ]"), _menu_sprites);
+
+        _gen.set_left_alignment();
         if (inv.count == 0)
         {
-            _gen.generate(0, 0, bn::string_view("(Empty)"), _pause_sprites);
+            _gen.set_center_alignment();
+            _gen.generate(0, 0, bn::string_view("(Empty)"), _menu_sprites);
         }
         else
         {
-            int shown = inv.count < 6 ? inv.count : 6;
+            int shown = inv.count < 7 ? inv.count : 7;
             for (int i = 0; i < shown; ++i)
             {
                 const InventorySlot& slot = inv.slots[i];
                 if (slot.id == ItemId::NONE) continue;
-                bn::string<32> line;
+                bn::string<32> ln;
+                ln.append(bn::string_view(i == _sub_cursor ? "> " : "  "));
                 const ItemDef& it = item_def(slot.id);
-                line.append(bn::string_view(it.name));
-                line.append(bn::string_view(" x"));
-                append_int(line, slot.qty);
-                _gen.generate(0, -50 + i * 20, line, _pause_sprites);
+                ln.append(bn::string_view(it.name));
+                ln.append(bn::string_view("  x"));
+                append_int(ln, slot.qty);
+                _gen.generate(-116, -36 + i * 14, ln, _menu_sprites);
             }
         }
+        _gen.set_center_alignment();
+        _gen.generate(0, 68, bn::string_view("B:Back"), _menu_sprites);
     }
+    else if (_menu_sub == MenuSub::MAGIC)
+    {
+        // ── Magic sub-screen ─────────────────────────────────────────
+        _gen.set_center_alignment();
+        _gen.generate(0, -52, bn::string_view("[ MAGIC ]"), _menu_sprites);
 
-    _gen.generate(0, 72, bn::string_view("B/Start to close"), _pause_sprites);
+        _gen.set_left_alignment();
+        if (pc.spell_count == 0)
+        {
+            _gen.set_center_alignment();
+            _gen.generate(0, 0, bn::string_view("(No spells)"), _menu_sprites);
+        }
+        else
+        {
+            for (int i = 0; i < pc.spell_count; ++i)
+            {
+                const SpellDef& sp = spell_def(pc.known_spells[i]);
+                bn::string<32> ln;
+                ln.append(bn::string_view(i == _sub_cursor ? "> " : "  "));
+                ln.append(bn::string_view(sp.name));
+                ln.append(bn::string_view("  "));
+                append_int(ln, sp.mp_cost);
+                ln.append(bn::string_view("MP"));
+                _gen.generate(-116, -36 + i * 16, ln, _menu_sprites);
+            }
+        }
+        _gen.set_center_alignment();
+        _gen.generate(0, 68, bn::string_view("B:Back"), _menu_sprites);
+    }
+    else if (_menu_sub == MenuSub::STATUS)
+    {
+        // ── Status sub-screen ────────────────────────────────────────
+        _gen.set_center_alignment();
+        _gen.generate(0, -52, bn::string_view("[ STATUS ]"), _menu_sprites);
+
+        _gen.set_left_alignment();
+        bn::string<32> ln;
+
+        ln.clear(); ln.append(bn::string_view(pc.name));
+        ln.append(bn::string_view("  Lv ")); append_int(ln, pc.level);
+        _gen.generate(-116, -32, ln, _menu_sprites);
+
+        ln.clear(); ln.append(bn::string_view("ATK ")); append_int(ln, pc.eff_atk());
+        ln.append(bn::string_view("   DEF ")); append_int(ln, pc.eff_def());
+        _gen.generate(-116, -14, ln, _menu_sprites);
+
+        ln.clear(); ln.append(bn::string_view("SPD ")); append_int(ln, pc.eff_spd());
+        ln.append(bn::string_view("   MAG ")); append_int(ln, pc.eff_mag());
+        _gen.generate(-116, 4, ln, _menu_sprites);
+
+        ln.clear(); ln.append(bn::string_view("HP  ")); append_int(ln, pc.hp);
+        ln.push_back('/'); append_int(ln, pc.eff_hp_max());
+        _gen.generate(-116, 22, ln, _menu_sprites);
+
+        ln.clear(); ln.append(bn::string_view("MP  ")); append_int(ln, pc.mp);
+        ln.push_back('/'); append_int(ln, pc.eff_mp_max());
+        _gen.generate(-116, 40, ln, _menu_sprites);
+
+        _gen.set_center_alignment();
+        _gen.generate(0, 68, bn::string_view("B:Back"), _menu_sprites);
+    }
 }
 
-void OverworldScene::close_pause_menu()
-{
-    _paused = false;
-    _pause_sprites.clear();
-}
+void OverworldScene::render_sub_items()  {}
+void OverworldScene::render_sub_magic()  {}
+void OverworldScene::render_sub_status() {}
