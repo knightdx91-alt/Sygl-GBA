@@ -77,10 +77,12 @@ private:
     int _move_dy     = 0;
 
     // Pause / start menu
-    bool _paused = false;
-    bn::vector<bn::sprite_ptr, 48> _pause_sprites;
+    bool _paused     = false;
+    int  _pause_page = 0;   // 0 = Stats, 1 = Items
+    bn::vector<bn::sprite_ptr, 64> _pause_sprites;
     void open_pause_menu();
     void close_pause_menu();
+    void render_pause_page();
 
     // Combat transition
     EnemyType _pending_enemy = EnemyType::BANDIT;

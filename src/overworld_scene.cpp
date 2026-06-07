@@ -125,7 +125,12 @@ OverworldResult OverworldScene::update()
     }
     if (_paused)
     {
-        if (bn::keypad::b_pressed()) close_pause_menu();
+        if (bn::keypad::b_pressed()) { close_pause_menu(); return OverworldResult::STAY; }
+        if (bn::keypad::left_pressed() || bn::keypad::right_pressed())
+        {
+            _pause_page = 1 - _pause_page;
+            render_pause_page();
+        }
         return OverworldResult::STAY;
     }
 
@@ -321,52 +326,81 @@ static void append_int(bn::string<32>& s, int v)
 void OverworldScene::open_pause_menu()
 {
     _paused = true;
+    _pause_page = 0;
+    render_pause_page();
+}
+
+void OverworldScene::render_pause_page()
+{
     _pause_sprites.clear();
     _gen.set_center_alignment();
 
     const Character& pc = _state.party.player();
+    const Inventory& inv = _state.party.inventory;
 
-    _gen.generate(0, -68, bn::string_view("─ STATUS ─"), _pause_sprites);
-
-    // Name + Level
-    bn::string<32> line;
-    line.append(bn::string_view(pc.name));
-    line.append(bn::string_view("  Lv"));
-    append_int(line, pc.level);
-    _gen.generate(0, -48, line, _pause_sprites);
-
-    // HP
-    line.clear();
-    line.append(bn::string_view("HP "));
-    append_int(line, pc.hp);
-    line.push_back('/');
-    append_int(line, pc.eff_hp_max());
-    _gen.generate(0, -28, line, _pause_sprites);
-
-    // MP
-    line.clear();
-    line.append(bn::string_view("MP "));
-    append_int(line, pc.mp);
-    line.push_back('/');
-    append_int(line, pc.eff_mp_max());
-    _gen.generate(0, -8, line, _pause_sprites);
-
-    // ATK / DEF
-    line.clear();
-    line.append(bn::string_view("ATK "));
-    append_int(line, pc.eff_atk());
-    line.append(bn::string_view("  DEF "));
-    append_int(line, pc.eff_def());
-    _gen.generate(0, 12, line, _pause_sprites);
-
-    // Spells header
-    _gen.generate(0, 32, bn::string_view("Spells:"), _pause_sprites);
-
-    // Up to 3 spells
-    for (int i = 0; i < pc.spell_count && i < 3; ++i)
+    if (_pause_page == 0)
     {
-        const SpellDef& sp = spell_def(pc.known_spells[i]);
-        _gen.generate(0, 48 + i * 16, bn::string_view(sp.name), _pause_sprites);
+        // ── Stats page ────────────────────────────────────────────────
+        _gen.generate(0, -68, bn::string_view("STATUS  >/< Items"), _pause_sprites);
+
+        bn::string<32> line;
+        line.append(bn::string_view(pc.name));
+        line.append(bn::string_view("  Lv"));
+        append_int(line, pc.level);
+        _gen.generate(0, -50, line, _pause_sprites);
+
+        line.clear();
+        line.append(bn::string_view("HP "));
+        append_int(line, pc.hp);
+        line.push_back('/');
+        append_int(line, pc.eff_hp_max());
+        _gen.generate(0, -32, line, _pause_sprites);
+
+        line.clear();
+        line.append(bn::string_view("MP "));
+        append_int(line, pc.mp);
+        line.push_back('/');
+        append_int(line, pc.eff_mp_max());
+        _gen.generate(0, -14, line, _pause_sprites);
+
+        line.clear();
+        line.append(bn::string_view("ATK "));
+        append_int(line, pc.eff_atk());
+        line.append(bn::string_view("  DEF "));
+        append_int(line, pc.eff_def());
+        _gen.generate(0, 4, line, _pause_sprites);
+
+        _gen.generate(0, 24, bn::string_view("Spells:"), _pause_sprites);
+        for (int i = 0; i < pc.spell_count && i < 3; ++i)
+        {
+            const SpellDef& sp = spell_def(pc.known_spells[i]);
+            _gen.generate(0, 40 + i * 16, bn::string_view(sp.name), _pause_sprites);
+        }
+    }
+    else
+    {
+        // ── Items page ────────────────────────────────────────────────
+        _gen.generate(0, -68, bn::string_view("Stats </> ITEMS"), _pause_sprites);
+
+        if (inv.count == 0)
+        {
+            _gen.generate(0, 0, bn::string_view("(Empty)"), _pause_sprites);
+        }
+        else
+        {
+            int shown = inv.count < 6 ? inv.count : 6;
+            for (int i = 0; i < shown; ++i)
+            {
+                const InventorySlot& slot = inv.slots[i];
+                if (slot.id == ItemId::NONE) continue;
+                bn::string<32> line;
+                const ItemDef& it = item_def(slot.id);
+                line.append(bn::string_view(it.name));
+                line.append(bn::string_view(" x"));
+                append_int(line, slot.qty);
+                _gen.generate(0, -50 + i * 20, line, _pause_sprites);
+            }
+        }
     }
 
     _gen.generate(0, 72, bn::string_view("B/Start to close"), _pause_sprites);
