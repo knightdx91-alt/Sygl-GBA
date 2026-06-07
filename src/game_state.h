@@ -24,5 +24,9 @@ struct GameState {
     bool enemy_alive[2] = { true, true };
     Party party;
 
+    // Quiz weights: index 0-4 → Duality, Waves, Terra, Tempus, Blood
+    int  quiz_weights[5] = {};
+    bool orphanage_done  = false;
+
     GameState() { party.init_default(); }
 };

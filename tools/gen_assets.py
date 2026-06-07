@@ -257,4 +257,88 @@ room_pal = [
 write_4bpp_bmp(os.path.join(OUT, 'room.bmp'), 256, 256, room_pal, pixels)
 write_json(os.path.join(OUT, 'room.json'), {'type': 'regular_bg'})
 
+# ── Orphanage interior (256x256 = 32x32 tiles of 8x8) ────────────────────────
+# Palette:
+#  0=void  1=slate_floor  2=slate_grout  3=grey_wall  4=wall_dark  5=wall_light
+#  6=desk_wood  7=desk_dark
+
+SLATE_GROUT      = ( 88,  88,  96)
+GREY_WALL_MID    = (128, 128, 136)
+GREY_WALL_DARK   = ( 80,  80,  88)
+GREY_WALL_LIGHT  = (168, 168, 176)
+
+orphan_pal = [
+    VOID_DEEP,        # 0
+    ORPHAN_SLATE,     # 1 floor
+    SLATE_GROUT,      # 2 grout
+    GREY_WALL_MID,    # 3 wall face
+    GREY_WALL_DARK,   # 4 wall mortar
+    GREY_WALL_LIGHT,  # 5 wall highlight
+    TERRA_EARTH,      # 6 desk wood
+    TERRA_DARK,       # 7 desk shadow
+]
+
+def orphan_floor_tile():
+    F = 1; G = 2
+    return [
+        [F, F, F, F, F, F, F, G],
+        [F, F, F, F, F, F, F, G],
+        [F, F, F, F, F, F, F, G],
+        [G, G, G, G, F, F, F, G],
+        [F, F, F, F, F, F, F, G],
+        [F, F, F, F, F, F, F, G],
+        [F, F, F, F, F, F, F, G],
+        [G, G, G, G, G, G, G, G],
+    ]
+
+def orphan_wall_tile(offset=0):
+    W = 3; D = 4; L = 5
+    row_A = [W, W, W, D, W, W, W, W]
+    row_B = [W, D, W, W, W, W, D, W]
+    top   = [L, L, L, L, L, L, L, L]
+    mort  = [D, D, D, D, D, D, D, D]
+    if offset == 0:
+        return [top, row_A, row_A, mort, row_B, row_B, row_B, mort]
+    else:
+        return [top, row_B, row_B, mort, row_A, row_A, row_A, mort]
+
+def orphan_desk_tile():
+    D = 6; Dd = 7
+    return [
+        [D,  D, D,  D,  D, D,  D,  D],
+        [D, Dd, D,  D,  D, D, Dd,  D],
+        [D,  D, D,  D,  D, D,  D,  D],
+        [Dd,Dd, Dd, Dd, Dd,Dd, Dd, Dd],
+        [D,  D, D,  D,  D, D,  D,  D],
+        [D, Dd, D,  D,  D, D, Dd,  D],
+        [D,  D, D,  D,  D, D,  D,  D],
+        [Dd,Dd, Dd, Dd, Dd,Dd, Dd, Dd],
+    ]
+
+# Desk block: rows 7-8, cols 23-25 (obstacle near Mrs. Brown at tile 22,10)
+DESK_TR_MIN, DESK_TR_MAX = 7, 8
+DESK_TC_MIN, DESK_TC_MAX = 23, 25
+
+oph_pixels = [[0]*256 for _ in range(256)]
+oft  = orphan_floor_tile()
+odt  = orphan_desk_tile()
+
+for tr in range(MAP_H):
+    for tc in range(MAP_W):
+        is_border = (tr == 0 or tr == MAP_H-1 or tc == 0 or tc == MAP_W-1)
+        is_desk   = (DESK_TR_MIN <= tr <= DESK_TR_MAX and
+                     DESK_TC_MIN <= tc <= DESK_TC_MAX)
+        if is_border:
+            tile = orphan_wall_tile((tr + tc) % 2)
+        elif is_desk:
+            tile = odt
+        else:
+            tile = oft
+        for r in range(TILE):
+            for c in range(TILE):
+                oph_pixels[tr*TILE + r][tc*TILE + c] = tile[r][c]
+
+write_4bpp_bmp(os.path.join(OUT, 'orphanage_interior.bmp'), 256, 256, orphan_pal, oph_pixels)
+write_json(os.path.join(OUT, 'orphanage_interior.json'), {'type': 'regular_bg'})
+
 print("Assets generated in", os.path.abspath(OUT))

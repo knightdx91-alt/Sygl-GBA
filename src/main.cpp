@@ -9,6 +9,7 @@
 #include "save_data.h"
 #include "character.h"
 #include "title_scene.h"
+#include "orphanage_scene.h"
 #include "overworld_scene.h"
 #include "combat_scene.h"
 #include "game_state.h"
@@ -82,6 +83,20 @@ int main()
                 pc.mp = pc.mp_max;
             }
         }
+    }
+
+    // ── Orphanage prologue (new game only) ───────────────────────────────────
+    if (title.chose_new_game())
+    {
+        OrphanageScene orphanage(state);
+        OrphanageResult o_result = OrphanageResult::STAY;
+        while (o_result == OrphanageResult::STAY)
+        {
+            o_result = orphanage.update();
+            bn::core::update();
+        }
+        state.tile_x = 16;
+        state.tile_y = 16;
     }
 
     // ── Main game loop ────────────────────────────────────────────────────────
