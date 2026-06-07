@@ -53,7 +53,7 @@ FONTS    := butano/template/fonts
 ```
 CI: `devkitpro/devkitarm:latest` Docker container. `export PYTHON=python3` required.
 
-## Active branch: main
+## Active branch: main — commit directly, no feature branches
 CI must stay green. `sygl.gba` artifact uploads on every push.
 
 ## Roadmap phases
