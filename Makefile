@@ -6,14 +6,17 @@ PROJ_VERSION    := 0.0.1
 BUILD           := build
 TARGET          := $(PROJ_NAME)
 
-SOURCES         := src
-INCLUDES        := include
-DATA            :=
-GRAPHICS        :=
-AUDIO           :=
-FONTS           := butano/template/fonts
+# Absolute path to this Makefile's directory — survives recursive make from build/
+PROJ_ROOT       := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
-BUTANO_HOME     ?= butano/butano
+SOURCES         := src
+INCLUDES        := include butano/common/include
+DATA            :=
+GRAPHICS        := butano/common/graphics assets/graphics
+AUDIO           :=
+FONTS           := $(PROJ_ROOT)/butano/template/fonts
+
+BUTANO_HOME     := $(PROJ_ROOT)/butano/butano
 LIBBUTANO       := $(BUTANO_HOME)
-LIBBUTANOABS    := $(abspath $(LIBBUTANO))
+LIBBUTANOABS    := $(BUTANO_HOME)
 include $(BUTANO_HOME)/butano.mak
