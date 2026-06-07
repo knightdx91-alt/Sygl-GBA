@@ -25,6 +25,12 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Debug butano structure
+        run: |
+          echo "=== butano/ top level ===" && ls butano/
+          echo "=== .mak files ===" && find butano -name "*.mak" | sort
+          echo "=== butano/butano/ (if exists) ===" && ls butano/butano/ 2>/dev/null || echo "(no butano/butano/ dir)"
+
       - name: Build ROM
         run: |
           export PYTHON=python3
