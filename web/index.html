@@ -474,6 +474,8 @@
   function startEmulator(romUrl, romName) {
     document.getElementById('launch-screen').style.display = 'none';
     document.getElementById('game').style.display = 'block';
+    document.getElementById('gba-pad').style.display = '';
+    document.getElementById('kb-hints').style.display = 'none';
     window.EJS_player        = '#game';
     window.EJS_core          = 'gba';
     window.EJS_gameUrl       = romUrl;
@@ -490,14 +492,6 @@
     const el = document.getElementById('drive-status');
     el.textContent = msg;
     el.className = type || '';
-  }
-
-  // ── Show pad once emulator launches ────────────────────────────────────────
-  const _origStart = startEmulator;
-  function startEmulator(romUrl, romName) {
-    _origStart(romUrl, romName);
-    document.getElementById('gba-pad').style.display = '';
-    document.getElementById('kb-hints').style.display = 'none';
   }
 
   // ── Virtual button input ────────────────────────────────────────────────────
