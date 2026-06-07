@@ -9,10 +9,10 @@ TARGET          := $(PROJ_NAME)
 # Absolute path to this Makefile's directory — survives recursive make from build/
 PROJ_ROOT       := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
-SOURCES         := src $(PROJ_ROOT)/butano/common
-INCLUDES        := include $(PROJ_ROOT)/butano/common
+SOURCES         := src
+INCLUDES        := include
 DATA            :=
-GRAPHICS        := $(PROJ_ROOT)/butano/common/graphics
+GRAPHICS        :=
 AUDIO           :=
 FONTS           := $(PROJ_ROOT)/butano/template/fonts
 
