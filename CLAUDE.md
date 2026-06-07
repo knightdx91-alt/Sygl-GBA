@@ -111,6 +111,71 @@ CI must stay green. `sygl.gba` artifact uploads on every push.
 | 11 | Ascendant superbosses + True Ending (Cycle Broken) | ⬜ Not started |
 | 12 | Polish, save integrity, localization, ROM packaging | ⬜ Not started |
 
+## Sprite pipeline (LPC → GBA)
+
+Character sprites use the **LPC (Liberated Pixel Cup)** universal spritesheet format.
+Source layers live in `assets/source/lpc_layers/`. Butano-ready BMPs go in `assets/graphics/`.
+
+### Step 1 — Download LPC layers
+Get walk animation sheets from the LPC Universal Character Generator:
+```
+https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/
+```
+Configure the character (body type, skin, hair, clothing) and export as individual layers.
+Each PNG is 576×256 (9 frames × 4 directions, 64×64 per frame).
+Save to `assets/source/lpc_layers/<name>_<layer>.png`.
+
+Currently downloaded base layers (male, light skin):
+- `body_walk.png`   — skin/body silhouette
+- `head_walk.png`   — head shape
+- `face_walk.png`   — facial features
+
+### Step 2 — Generate clothing overlays (optional, if no clothing layer downloaded)
+```bash
+python3 tools/lpc_clothing_overlay.py \
+    --body  assets/source/lpc_layers/body_walk.png \
+    --torso R,G,B \
+    --legs  R,G,B \
+    --output assets/source/lpc_layers/<name>_clothing.png
+```
+This paints solid-colored shapes over the body silhouette to represent shirts/trousers.
+
+### Step 3 — Convert to GBA sprite
+```bash
+python3 tools/lpc_to_gba.py <output_name> \
+    assets/source/lpc_layers/body_walk.png \
+    [assets/source/lpc_layers/<name>_clothing.png] \
+    assets/source/lpc_layers/head_walk.png \
+    assets/source/lpc_layers/face_walk.png
+```
+Output: `assets/graphics/<output_name>.bmp` + `.json`
+Format: 256×16 horizontal strip, 4bpp, 16 colors, 16 frames (4 dir × 4 walk frames)
+
+### Step 4 — Use in C++
+```cpp
+#include "bn_sprite_items_<output_name>.h"
+// Create:
+_sprite = bn::sprite_items::<output_name>.create_sprite(sx, sy);
+// Animate (frame = dir * 4 + walk_frame, dir: 0=down 1=left 2=right 3=up):
+_sprite->set_tiles(bn::sprite_items::<output_name>.tiles_item(), frame_index);
+```
+
+### Existing sprites
+| File                | Character          | Layers used                          |
+|---------------------|--------------------|--------------------------------------|
+| `player.bmp`        | PC (protagonist)   | body + head + face                   |
+| `kid.bmp`           | Corridor kid NPC   | body + kid_clothing (grey uniform) + head + face |
+| `mrs_brown.bmp`     | Mrs. Brown NPC     | body + brown_clothing (brown dress) + head + face |
+| `npc.bmp`           | Generic NPC        | programmatic placeholder             |
+| `npc2.bmp`          | Generic NPC        | programmatic placeholder             |
+| `npc3.bmp`          | Generic NPC        | programmatic placeholder             |
+
+### To add a new character
+1. Download their LPC layers (or use `lpc_clothing_overlay.py` for clothing)
+2. Run `lpc_to_gba.py` with their layers
+3. Include `bn_sprite_items_<name>.h` in the relevant scene
+4. Add `#include` and `create_sprite()` call, animate with `set_tiles()`
+
 ## Key technical rules
 - `bn::sprite_ptr` has no default constructor — always use `bn::optional<bn::sprite_ptr>`
 - `constexpr` static array members need inline initializers in class body (C++17)

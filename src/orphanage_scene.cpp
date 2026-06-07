@@ -9,8 +9,8 @@
 #include "bn_sprite_animate_actions.h"
 
 static constexpr int ANIM_SPEED = 8;   // frames between tile changes
-#include "bn_sprite_items_npc.h"
-#include "bn_sprite_items_npc2.h"
+#include "bn_sprite_items_kid.h"
+#include "bn_sprite_items_mrs_brown.h"
 #include "bn_regular_bg_items_orphanage_corridor.h"
 #include "bn_regular_bg_items_orphanage_office.h"
 #include "bn_regular_bg_items_orphanage_rooftop.h"
@@ -212,7 +212,7 @@ void OrphanageScene::switch_room(ORoom to, int px, int py)
         _npc_tile_x[0] = 22; _npc_tile_y[0] = 12;
         int sx, sy;
         screen_pos(_npc_tile_x[0], _npc_tile_y[0], sx, sy);
-        _npc_sprite[0] = bn::sprite_items::npc2.create_sprite(sx, sy);
+        _npc_sprite[0] = bn::sprite_items::kid.create_sprite(sx, sy);
     }
     else if (to == ORoom::OFFICE)
     {
@@ -224,7 +224,7 @@ void OrphanageScene::switch_room(ORoom to, int px, int py)
         _npc_tile_x[0] = 14; _npc_tile_y[0] = 12;
         int sx, sy;
         screen_pos(_npc_tile_x[0], _npc_tile_y[0], sx, sy);
-        _npc_sprite[0] = bn::sprite_items::npc.create_sprite(sx, sy);
+        _npc_sprite[0] = bn::sprite_items::mrs_brown.create_sprite(sx, sy);
     }
     else // ROOFTOP
     {
