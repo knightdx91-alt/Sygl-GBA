@@ -6,6 +6,9 @@
 #include "bn_regular_bg_map_cell_info.h"
 #include "common_variable_8x16_sprite_font.h"
 #include "bn_sprite_items_player.h"
+#include "bn_sprite_animate_actions.h"
+
+static constexpr int ANIM_SPEED = 8;   // frames between tile changes
 #include "bn_sprite_items_npc.h"
 #include "bn_sprite_items_npc2.h"
 #include "bn_regular_bg_items_orphanage_corridor.h"
@@ -123,8 +126,16 @@ OrphanageResult OrphanageScene::update()
     else if (bn::keypad::up_held())    { dy = -1; }
     else if (bn::keypad::down_held())  { dy =  1; }
 
-    if (dx != 0 || dy != 0)
+    _is_moving = (dx != 0 || dy != 0);
+
+    if (_is_moving)
     {
+        // Update facing direction
+        if      (dy >  0) _anim_dir = ANIM_DIR_DOWN;
+        else if (dy < 0)  _anim_dir = ANIM_DIR_UP;
+        else if (dx < 0)  _anim_dir = ANIM_DIR_LEFT;
+        else              _anim_dir = ANIM_DIR_RIGHT;
+
         bool dir_changed = (dx != _move_dx || dy != _move_dy);
         _move_dx = dx; _move_dy = dy;
         if (dir_changed)
@@ -143,6 +154,24 @@ OrphanageResult OrphanageScene::update()
     {
         _move_dx = 0; _move_dy = 0; _move_timer = 0;
     }
+
+    // Animate player sprite
+    if (_is_moving)
+    {
+        _anim_timer++;
+        if (_anim_timer >= ANIM_SPEED)
+        {
+            _anim_timer = 0;
+            _anim_frame = (_anim_frame + 1) % 4;
+        }
+    }
+    else
+    {
+        _anim_frame = 0;
+        _anim_timer = 0;
+    }
+    int tile_index = _anim_dir * 4 + _anim_frame;
+    _player_sprite->set_tiles(bn::sprite_items::player.tiles_item(), tile_index);
 
     check_transitions();
     check_npc_proximity();

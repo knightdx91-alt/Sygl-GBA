@@ -8,6 +8,13 @@
 #include "choice_box.h"
 #include "game_state.h"
 
+// Walk animation: 4 frames per direction, 4 directions
+// Frame layout in player.bmp: 0-3=down, 4-7=left, 8-11=right, 12-15=up
+static constexpr int ANIM_DIR_DOWN  = 0;
+static constexpr int ANIM_DIR_LEFT  = 1;
+static constexpr int ANIM_DIR_RIGHT = 2;
+static constexpr int ANIM_DIR_UP    = 3;
+
 enum class OrphanageResult { STAY, LEAVE_FOR_SCHOOL };
 
 // Rooms within the orphanage
@@ -66,4 +73,10 @@ private:
     int _move_timer = 0;
     int _move_dx    = 0;
     int _move_dy    = 0;
+
+    // Walk animation
+    int _anim_dir    = ANIM_DIR_DOWN;
+    int _anim_frame  = 0;      // 0-3 within direction
+    int _anim_timer  = 0;      // counts up to ANIM_SPEED
+    bool _is_moving  = false;
 };
