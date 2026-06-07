@@ -12,7 +12,7 @@ PROJ_ROOT       := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))
 SOURCES         := src
 INCLUDES        := include butano/common/include
 DATA            :=
-GRAPHICS        := butano/common/graphics
+GRAPHICS        := butano/common/graphics assets/graphics
 AUDIO           :=
 FONTS           := $(PROJ_ROOT)/butano/template/fonts
 
