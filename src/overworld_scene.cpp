@@ -1,7 +1,8 @@
 #include "overworld_scene.h"
 #include "bn_keypad.h"
 #include "bn_bg_palettes.h"
-#include "bn_math.h"
+#include "bn_color.h"
+#include "bn_fixed.h"
 #include "common_variable_8x16_sprite_font.h"
 
 static const bn::string_view NPC_DIALOGUE[] = {

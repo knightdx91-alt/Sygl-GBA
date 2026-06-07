@@ -1,6 +1,7 @@
 #include "title_scene.h"
 #include "bn_keypad.h"
 #include "bn_bg_palettes.h"
+#include "bn_string.h"
 #include "common_variable_8x16_sprite_font.h"
 
 TitleScene::TitleScene(bool has_save)
