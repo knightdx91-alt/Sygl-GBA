@@ -3,17 +3,18 @@
 #include "bn_bg_palettes.h"
 #include "bn_color.h"
 #include "bn_string.h"
+#include "bn_fixed_point.h"
 #include "bn_regular_bg_map_cell_info.h"
 #include "common_variable_8x16_sprite_font.h"
 #include "bn_sprite_items_player.h"
-#include "bn_sprite_animate_actions.h"
-
-static constexpr int ANIM_SPEED = 8;   // frames between tile changes
 #include "bn_sprite_items_kid.h"
 #include "bn_sprite_items_mrs_brown.h"
+#include "bn_sprite_animate_actions.h"
 #include "bn_regular_bg_items_orphanage_corridor.h"
 #include "bn_regular_bg_items_orphanage_office.h"
 #include "bn_regular_bg_items_orphanage_rooftop.h"
+
+static constexpr int ANIM_SPEED = 8;
 
 // ── Dialogue ──────────────────────────────────────────────────────────────────
 
@@ -65,16 +66,16 @@ static const bn::string_view BROWN_POST[] = {
 
 OrphanageScene::OrphanageScene(GameState& state)
     : _state(state),
-      _gen(common::variable_8x16_sprite_font)
+      _gen(common::variable_8x16_sprite_font),
+      _camera(bn::camera_ptr::create(0, 0))
 {
     bn::bg_palettes::set_transparent_color(bn::color(0, 0, 0));
 
-    // Start in corridor, player at centre
     _state.tile_x = 15;
     _state.tile_y = 16;
 
-    // Spawn player at (0,0); switch_room → update_camera will reposition
     _player_sprite = bn::sprite_items::player.create_sprite(0, 0);
+    _player_sprite->set_camera(_camera);
 
     switch_room(ORoom::CORRIDOR, _state.tile_x, _state.tile_y);
 }
@@ -207,35 +208,37 @@ void OrphanageScene::switch_room(ORoom to, int px, int py)
         _bg = bn::regular_bg_items::orphanage_corridor.create_bg(0, 0);
         map_item_ptr = &bn::regular_bg_items::orphanage_corridor.map_item();
 
-        // Kid NPC in the corridor
         _npc_count = 1;
         _npc_tile_x[0] = 22; _npc_tile_y[0] = 12;
-        int sx, sy;
-        screen_pos(_npc_tile_x[0], _npc_tile_y[0], sx, sy);
-        _npc_sprite[0] = bn::sprite_items::kid.create_sprite(sx, sy);
+        _npc_sprite[0] = bn::sprite_items::kid.create_sprite(
+            tile_to_world(_npc_tile_x[0]), tile_to_world(_npc_tile_y[0]));
+        _npc_sprite[0]->set_camera(_camera);
     }
     else if (to == ORoom::OFFICE)
     {
         _bg = bn::regular_bg_items::orphanage_office.create_bg(0, 0);
         map_item_ptr = &bn::regular_bg_items::orphanage_office.map_item();
 
-        // Mrs. Brown behind her desk
         _npc_count = 1;
         _npc_tile_x[0] = 14; _npc_tile_y[0] = 12;
-        int sx, sy;
-        screen_pos(_npc_tile_x[0], _npc_tile_y[0], sx, sy);
-        _npc_sprite[0] = bn::sprite_items::mrs_brown.create_sprite(sx, sy);
+        _npc_sprite[0] = bn::sprite_items::mrs_brown.create_sprite(
+            tile_to_world(_npc_tile_x[0]), tile_to_world(_npc_tile_y[0]));
+        _npc_sprite[0]->set_camera(_camera);
     }
     else // ROOFTOP
     {
         _bg = bn::regular_bg_items::orphanage_rooftop.create_bg(0, 0);
         map_item_ptr = &bn::regular_bg_items::orphanage_rooftop.map_item();
-        // No NPCs on rooftop
     }
+
+    _bg->set_camera(_camera);
 
     // Recompute walkable tile index for new map
     bn::regular_bg_map_cell floor_cell = map_item_ptr->cell(2, 2);
     _floor_tile_index = bn::regular_bg_map_cell_info(floor_cell).tile_index();
+
+    // Update player sprite world position
+    _player_sprite->set_position(tile_to_world(px), tile_to_world(py));
 
     update_camera();
 }
@@ -289,6 +292,7 @@ void OrphanageScene::try_move(int dx, int dy)
 
     _state.tile_x = nx;
     _state.tile_y = ny;
+    _player_sprite->set_position(tile_to_world(nx), tile_to_world(ny));
 }
 
 bool OrphanageScene::tile_walkable(int tx, int ty) const
@@ -307,49 +311,16 @@ bool OrphanageScene::tile_walkable(int tx, int ty) const
     return bn::regular_bg_map_cell_info(cell).tile_index() == _floor_tile_index;
 }
 
-void OrphanageScene::screen_pos(int tx, int ty, int& sx, int& sy) const
-{
-    // Convert tile coords to screen coords using current camera offset.
-    // Sprites use centre-of-screen as (0,0); GBA screen = 240×160.
-    sx = tx * 8 - _cam_x - 120;
-    sy = ty * 8 - _cam_y -  80;
-}
-
 void OrphanageScene::update_camera()
 {
-    // Map is 32×32 tiles = 256×256 world-px. Screen = 240×160.
-    // Scroll BG so the player tile is centred. Clamp so we never show outside map.
-    int px = _state.tile_x * 8;
-    int py = _state.tile_y * 8;
-
-    _cam_x = px - 120;
-    _cam_y = py -  80;
-
-    // Clamp: cam must stay inside [0, mapW-screenW] × [0, mapH-screenH]
-    if (_cam_x < 0)  _cam_x = 0;
-    if (_cam_x > 16) _cam_x = 16;   // 256 - 240
-    if (_cam_y < 0)  _cam_y = 0;
-    if (_cam_y > 96) _cam_y = 96;   // 256 - 160
-
-    // Butano BG position uses a centred, negated coordinate system:
-    // positive set_position y moves the BG downward (camera pans up).
-    // We want the camera to follow the player, so negate both axes.
-    if (_bg) _bg->set_position(-_cam_x, -_cam_y);
-
-    // Reposition player sprite
-    int sx, sy;
-    screen_pos(_state.tile_x, _state.tile_y, sx, sy);
-    if (_player_sprite) _player_sprite->set_position(sx, sy);
-
-    // Reposition NPC sprites
-    for (int i = 0; i < _npc_count; ++i)
-    {
-        if (_npc_sprite[i])
-        {
-            screen_pos(_npc_tile_x[i], _npc_tile_y[i], sx, sy);
-            _npc_sprite[i]->set_position(sx, sy);
-        }
-    }
+    // Move camera to player world position, clamped so we never show outside the map.
+    // Map is 32×32 tiles × 8px = 256×256 world-px. Butano camera (0,0) = BG centre.
+    // tile_to_world(t) = t*8 - 128. Clamp so screen (240×160) stays inside map:
+    //   world x clamp: [-128+120, 128-120] = [-8, 8]
+    //   world y clamp: [-128+80,  128-80]  = [-48, 48]
+    bn::fixed wx = bn::fixed(tile_to_world(_state.tile_x)).clamp(-8, 8);
+    bn::fixed wy = bn::fixed(tile_to_world(_state.tile_y)).clamp(-48, 48);
+    _camera.set_position(wx, wy);
 }
 
 // ── NPC proximity ─────────────────────────────────────────────────────────────
@@ -374,10 +345,10 @@ void OrphanageScene::check_npc_proximity()
         _prompt_sprites.clear();
         if (_near_npc >= 0)
         {
-            int sx, sy;
-            screen_pos(_npc_tile_x[_near_npc], _npc_tile_y[_near_npc], sx, sy);
+            // NPC is always adjacent to player (≤1 tile away).
+            // Player is near screen centre, so place prompt just above centre.
             _gen.set_center_alignment();
-            _gen.generate(sx, sy - 18, bn::string_view("Press A"), _prompt_sprites);
+            _gen.generate(0, -24, bn::string_view("Press A"), _prompt_sprites);
         }
     }
 }
