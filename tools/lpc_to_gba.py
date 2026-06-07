@@ -55,10 +55,12 @@ def scale_frame(frame: Image.Image) -> Image.Image:
 
 
 def build_strip(frames: list[Image.Image]) -> Image.Image:
-    """Arrange frames as a horizontal strip: (N_FRAMES*16) × 16 RGBA."""
-    strip = Image.new('RGBA', (N_FRAMES * OUT_SIZE, OUT_SIZE), (0, 0, 0, 0))
+    """Arrange frames as a vertical strip: 16 × (N_FRAMES*16).
+    Butano sprite sheets stack frames top-to-bottom, each frame must be a
+    valid GBA sprite size (16×16 here). Width must equal OUT_SIZE exactly."""
+    strip = Image.new('RGBA', (OUT_SIZE, N_FRAMES * OUT_SIZE), (0, 0, 0, 0))
     for i, f in enumerate(frames):
-        strip.paste(f, (i * OUT_SIZE, 0))
+        strip.paste(f, (0, i * OUT_SIZE))
     return strip
 
 
@@ -158,7 +160,7 @@ def convert(name: str, layer_paths: list[str]):
     bmp_path  = os.path.join(OUT_DIR, f'{name}.bmp')
     json_path = os.path.join(OUT_DIR, f'{name}.json')
 
-    write_4bpp_bmp(bmp_path, N_FRAMES * OUT_SIZE, OUT_SIZE, palette, pixels)
+    write_4bpp_bmp(bmp_path, OUT_SIZE, N_FRAMES * OUT_SIZE, palette, pixels)
     write_json(json_path, {
         'type': 'sprite',
         'height': OUT_SIZE,
