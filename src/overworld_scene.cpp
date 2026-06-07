@@ -54,7 +54,7 @@ OverworldScene::OverworldScene(GameState& state)
       _gen(common::variable_8x16_sprite_font),
       _bg(bn::regular_bg_items::room.create_bg(0, 0))
 {
-    bn::bg_palettes::set_transparent_color(bn::color(2, 2, 4));
+    bn::bg_palettes::set_transparent_color(bn::color(2, 1, 1));
 
     // Determine walkable tile index from a known interior cell
     const bn::regular_bg_map_item& map_item = bn::regular_bg_items::room.map_item();

@@ -129,10 +129,10 @@ for tile_row in range(MAP_H_TILES):
                 pixels[tile_row * TILE_PX + r][tile_col * TILE_PX + c] = tile[r][c]
 
 room_pal = [
-    (2, 2, 4),        # 0 near-black
-    (46, 72, 100),    # 1 floor (dark slate blue)
-    (70, 50, 38),     # 2 wall (dark brown)
-    (90, 68, 52),     # 3 wall accent (lighter brown)
+    (20, 16, 12),     # 0 backdrop (dark)
+    (160, 140, 100),  # 1 floor (warm stone/tan)
+    (80, 60, 45),     # 2 wall (dark brown)
+    (110, 88, 66),    # 3 wall accent (lighter brown)
 ]
 write_4bpp_bmp(os.path.join(OUT, 'room.bmp'), 256, 256, room_pal, pixels)
 write_json(os.path.join(OUT, 'room.json'), {'type': 'regular_bg'})
