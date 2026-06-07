@@ -6,10 +6,10 @@ PROJ_VERSION    := 0.0.1
 BUILD           := build
 TARGET          := $(PROJ_NAME)
 
-SOURCES         := src
-INCLUDES        := include
+SOURCES         := src butano/examples/common
+INCLUDES        := include butano/examples/common
 DATA            :=
-GRAPHICS        :=
+GRAPHICS        := butano/examples/common/graphics
 AUDIO           :=
 FONTS           := butano/template/fonts
 
