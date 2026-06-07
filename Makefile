@@ -10,9 +10,9 @@ TARGET          := $(PROJ_NAME)
 PROJ_ROOT       := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 SOURCES         := src
-INCLUDES        := include $(PROJ_ROOT)/butano/common/include
+INCLUDES        := include butano/common/include
 DATA            :=
-GRAPHICS        := $(PROJ_ROOT)/butano/common/graphics
+GRAPHICS        := butano/common/graphics
 AUDIO           :=
 FONTS           := $(PROJ_ROOT)/butano/template/fonts
 
