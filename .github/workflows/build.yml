@@ -30,15 +30,23 @@ jobs:
           export PYTHON=python3
           make
 
+      - name: Locate ROM
+        run: |
+          echo "=== find . -name '*.gba' ==="
+          find . -name "*.gba" 2>/dev/null || echo "no .gba files found"
+
       - name: Upload ROM artifact
         uses: actions/upload-artifact@v4
         with:
           name: sygl-rom
-          path: build/sygl.gba
+          path: "**/*.gba"
 
       - name: Copy ROM into web folder
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: cp build/sygl.gba web/sygl.gba
+        run: |
+          GBA=$(find . -name "*.gba" | head -1)
+          echo "ROM found at: $GBA"
+          cp "$GBA" web/sygl.gba
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
