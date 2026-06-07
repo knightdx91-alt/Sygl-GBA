@@ -341,4 +341,80 @@ for tr in range(MAP_H):
 write_4bpp_bmp(os.path.join(OUT, 'orphanage_interior.bmp'), 256, 256, orphan_pal, oph_pixels)
 write_json(os.path.join(OUT, 'orphanage_interior.json'), {'type': 'regular_bg'})
 
+def build_room(desk_blocks=None, left_opening=None, right_opening=None,
+               top_opening=None, bottom_opening=None):
+    """Build a 32x32 tile pixel grid using orphanage palette.
+    desk_blocks: list of (tr_min, tr_max, tc_min, tc_max)
+    *_opening: list of tile indices where the border is cut open (floor instead of wall)
+    """
+    pixels = [[0]*256 for _ in range(256)]
+    ft = orphan_floor_tile()
+    dt = orphan_desk_tile()
+    left_opening  = set(left_opening  or [])
+    right_opening = set(right_opening or [])
+    top_opening   = set(top_opening   or [])
+    bottom_opening= set(bottom_opening or [])
+    desk_blocks   = desk_blocks or []
+
+    for tr in range(32):
+        for tc in range(32):
+            is_left   = tc == 0
+            is_right  = tc == 31
+            is_top    = tr == 0
+            is_bottom = tr == 31
+            on_border = is_left or is_right or is_top or is_bottom
+
+            # Cut openings in border walls
+            if is_left   and tr in left_opening:   on_border = False
+            if is_right  and tr in right_opening:  on_border = False
+            if is_top    and tc in top_opening:    on_border = False
+            if is_bottom and tc in bottom_opening: on_border = False
+
+            is_desk = any(r0 <= tr <= r1 and c0 <= tc <= c1
+                          for (r0, r1, c0, c1) in desk_blocks)
+
+            if on_border:
+                tile = orphan_wall_tile((tr + tc) % 2)
+            elif is_desk:
+                tile = dt
+            else:
+                tile = ft
+
+            for r in range(8):
+                for c in range(8):
+                    pixels[tr*8 + r][tc*8 + c] = tile[r][c]
+    return pixels
+
+# ── Orphanage Corridor ────────────────────────────────────────────────────────
+# Left wall opening rows 13-14 → Mrs. Brown's office
+# Top wall opening cols 14-16 → rooftop stairs
+# Small furniture block on right side for visual interest
+corridor_pixels = build_room(
+    desk_blocks   = [(10, 11, 22, 24)],
+    left_opening  = [13, 14],
+    top_opening   = [14, 15, 16],
+)
+write_4bpp_bmp(os.path.join(OUT, 'orphanage_corridor.bmp'), 256, 256, orphan_pal, corridor_pixels)
+write_json(os.path.join(OUT, 'orphanage_corridor.json'), {'type': 'regular_bg'})
+
+# ── Orphanage Office (Mrs. Brown) ─────────────────────────────────────────────
+# Right wall opening rows 14-15 → back to corridor
+# Desk block rows 7-9, cols 10-19 (Mrs. Brown's desk)
+# Filing cabinets rows 5-10, cols 2-4 and 27-29
+office_pixels = build_room(
+    desk_blocks   = [(7, 9, 10, 19), (5, 10, 2, 4), (5, 10, 27, 29)],
+    right_opening = [14, 15],
+)
+write_4bpp_bmp(os.path.join(OUT, 'orphanage_office.bmp'), 256, 256, orphan_pal, office_pixels)
+write_json(os.path.join(OUT, 'orphanage_office.json'), {'type': 'regular_bg'})
+
+# ── Orphanage Rooftop ─────────────────────────────────────────────────────────
+# Bottom wall opening cols 13-15 → back down to corridor
+# No other openings (parapet on all sides)
+rooftop_pixels = build_room(
+    bottom_opening = [13, 14, 15],
+)
+write_4bpp_bmp(os.path.join(OUT, 'orphanage_rooftop.bmp'), 256, 256, orphan_pal, rooftop_pixels)
+write_json(os.path.join(OUT, 'orphanage_rooftop.json'), {'type': 'regular_bg'})
+
 print("Assets generated in", os.path.abspath(OUT))
