@@ -77,11 +77,12 @@ private:
     int _move_dy     = 0;
 
     // FF-style menu
-    enum class MenuSub { NONE, ITEMS, MAGIC, STATUS };
+    enum class MenuSub { NONE, ITEMS, MAGIC, EQUIP, STATUS, SAVED };
     bool    _paused      = false;
-    int     _menu_cursor = 0;   // 0=Items 1=Magic 2=Status 3=Save 4=Close
+    int     _menu_cursor = 0;   // 0=Items 1=Magic 2=Equip 3=Status 4=Save 5=Close
     int     _sub_cursor  = 0;
     MenuSub _menu_sub    = MenuSub::NONE;
+    int     _saved_timer = 0;
     bn::vector<bn::sprite_ptr, 96> _menu_sprites;
     void open_menu();
     void close_menu();

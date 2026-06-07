@@ -1,6 +1,7 @@
 #include "overworld_scene.h"
 #include "item_data.h"
 #include "character.h"
+#include "save_data.h"
 #include "bn_keypad.h"
 #include "bn_bg_palettes.h"
 #include "bn_color.h"
@@ -125,6 +126,19 @@ OverworldResult OverworldScene::update()
     }
     if (_paused)
     {
+        // SAVED flash — auto-dismiss after ~90 frames
+        if (_menu_sub == MenuSub::SAVED)
+        {
+            _saved_timer++;
+            if (_saved_timer > 90 || bn::keypad::a_pressed() || bn::keypad::b_pressed())
+            {
+                _menu_sub = MenuSub::NONE;
+                _saved_timer = 0;
+                render_menu();
+            }
+            return OverworldResult::STAY;
+        }
+
         // Sub-screen active — B returns to main menu
         if (_menu_sub != MenuSub::NONE)
         {
@@ -133,24 +147,62 @@ OverworldResult OverworldScene::update()
                 _menu_sub = MenuSub::NONE;
                 _sub_cursor = 0;
                 render_menu();
+                return OverworldResult::STAY;
             }
-            else if (_menu_sub == MenuSub::ITEMS || _menu_sub == MenuSub::MAGIC)
+
+            if (_menu_sub == MenuSub::ITEMS || _menu_sub == MenuSub::MAGIC)
             {
-                // scroll sub-list
                 int max_items = (_menu_sub == MenuSub::ITEMS)
                     ? _state.party.inventory.count
                     : _state.party.player().spell_count;
-                if (bn::keypad::up_pressed()   && _sub_cursor > 0)          { _sub_cursor--; render_menu(); }
-                if (bn::keypad::down_pressed()  && _sub_cursor < max_items-1) { _sub_cursor++; render_menu(); }
+                if (max_items > 0)
+                {
+                    if (bn::keypad::up_pressed()  && _sub_cursor > 0)           { _sub_cursor--; render_menu(); }
+                    if (bn::keypad::down_pressed() && _sub_cursor < max_items-1) { _sub_cursor++; render_menu(); }
+                }
+            }
+
+            if (_menu_sub == MenuSub::EQUIP)
+            {
+                // Build equippable list on the fly; count equipment items
+                int equip_count = 0;
+                for (int i = 0; i < _state.party.inventory.count; ++i)
+                    if (item_def(_state.party.inventory.slots[i].id).is_equipment)
+                        equip_count++;
+
+                if (equip_count > 0)
+                {
+                    if (bn::keypad::up_pressed()   && _sub_cursor > 0)              { _sub_cursor--; render_menu(); }
+                    if (bn::keypad::down_pressed()  && _sub_cursor < equip_count-1) { _sub_cursor++; render_menu(); }
+                }
+                if (bn::keypad::a_pressed())
+                {
+                    // Find the nth equippable item
+                    int idx = 0;
+                    for (int i = 0; i < _state.party.inventory.count; ++i)
+                    {
+                        ItemId id = _state.party.inventory.slots[i].id;
+                        if (item_def(id).is_equipment)
+                        {
+                            if (idx == _sub_cursor)
+                            {
+                                _state.party.player().equip(id);
+                                render_menu();
+                                break;
+                            }
+                            idx++;
+                        }
+                    }
+                }
             }
             return OverworldResult::STAY;
         }
 
-        // Main menu navigation
-        static constexpr int MENU_OPTIONS = 5;
+        // Main menu navigation (6 options: Items/Magic/Equip/Status/Save/Close)
+        static constexpr int MENU_OPTIONS = 6;
         if (bn::keypad::up_pressed())   { _menu_cursor = (_menu_cursor + MENU_OPTIONS - 1) % MENU_OPTIONS; render_menu(); }
         if (bn::keypad::down_pressed()) { _menu_cursor = (_menu_cursor + 1) % MENU_OPTIONS;                render_menu(); }
-        if (bn::keypad::b_pressed() || (bn::keypad::a_pressed() && _menu_cursor == 4))
+        if (bn::keypad::b_pressed() || (bn::keypad::a_pressed() && _menu_cursor == 5))
         {
             close_menu();
             return OverworldResult::STAY;
@@ -159,11 +211,21 @@ OverworldResult OverworldScene::update()
         {
             if (_menu_cursor == 0) { _menu_sub = MenuSub::ITEMS;  _sub_cursor = 0; render_menu(); }
             if (_menu_cursor == 1) { _menu_sub = MenuSub::MAGIC;  _sub_cursor = 0; render_menu(); }
-            if (_menu_cursor == 2) { _menu_sub = MenuSub::STATUS; render_menu(); }
-            if (_menu_cursor == 3)
+            if (_menu_cursor == 2) { _menu_sub = MenuSub::EQUIP;  _sub_cursor = 0; render_menu(); }
+            if (_menu_cursor == 3) { _menu_sub = MenuSub::STATUS; render_menu(); }
+            if (_menu_cursor == 4)
             {
-                // Save placeholder
-                _menu_sub = MenuSub::STATUS; // reuse STATUS area to show "Saved!"
+                const Character& pc = _state.party.player();
+                SaveSlot s = {};
+                for (int i = 0; i < 12; ++i) s.player_name[i] = pc.name[i];
+                s.sygl_id     = (uint8_t)pc.sygl;
+                s.level       = (uint8_t)pc.level;
+                s.hp_max      = (uint16_t)pc.hp_max;
+                s.mp_max      = (uint16_t)pc.mp_max;
+                s.location_id = 1;
+                save_data::write_slot(0, s);
+                _saved_timer = 0;
+                _menu_sub = MenuSub::SAVED;
                 render_menu();
             }
         }
@@ -423,15 +485,15 @@ void OverworldScene::render_menu()
 
         // ── Right panel: menu options ────────────────────────────────
         static const bn::string_view OPTIONS[] = {
-            "Items", "Magic", "Status", "Save", "Close"
+            "Items", "Magic", "Equip", "Status", "Save", "Close"
         };
-        for (int i = 0; i < 5; ++i)
+        for (int i = 0; i < 6; ++i)
         {
             ln.clear();
             ln.append(bn::string_view(i == _menu_cursor ? "> " : "  "));
             for (char c : OPTIONS[i]) ln.push_back(c);
             _gen.set_left_alignment();
-            _gen.generate(20, -52 + i * 20, ln, _menu_sprites);
+            _gen.generate(20, -52 + i * 16, ln, _menu_sprites);
         }
 
         _gen.set_center_alignment();
@@ -528,6 +590,59 @@ void OverworldScene::render_menu()
 
         _gen.set_center_alignment();
         _gen.generate(0, 68, bn::string_view("B:Back"), _menu_sprites);
+    }
+    else if (_menu_sub == MenuSub::EQUIP)
+    {
+        // ── Equip sub-screen ─────────────────────────────────────────
+        _gen.set_center_alignment();
+        _gen.generate(0, -52, bn::string_view("[ EQUIP ]"), _menu_sprites);
+
+        // Show currently equipped
+        _gen.set_left_alignment();
+        const Character& pc = _state.party.player();
+        bn::string<32> ln;
+
+        ln.clear(); ln.append(bn::string_view("Wpn: "));
+        ln.append(bn::string_view(pc.weapon    != ItemId::NONE ? item_def(pc.weapon).name    : "---"));
+        _gen.generate(-116, -36, ln, _menu_sprites);
+
+        ln.clear(); ln.append(bn::string_view("Arm: "));
+        ln.append(bn::string_view(pc.armor     != ItemId::NONE ? item_def(pc.armor).name     : "---"));
+        _gen.generate(-116, -20, ln, _menu_sprites);
+
+        ln.clear(); ln.append(bn::string_view("Acc: "));
+        ln.append(bn::string_view(pc.accessory != ItemId::NONE ? item_def(pc.accessory).name : "---"));
+        _gen.generate(-116, -4, ln, _menu_sprites);
+
+        // List equippable items from inventory
+        int idx = 0;
+        bool any = false;
+        for (int i = 0; i < _state.party.inventory.count && idx < 5; ++i)
+        {
+            ItemId id = _state.party.inventory.slots[i].id;
+            if (!item_def(id).is_equipment) continue;
+            ln.clear();
+            ln.append(bn::string_view(idx == _sub_cursor ? "> " : "  "));
+            ln.append(bn::string_view(item_def(id).name));
+            _gen.generate(-116, 16 + idx * 14, ln, _menu_sprites);
+            idx++;
+            any = true;
+        }
+        if (!any)
+        {
+            _gen.set_center_alignment();
+            _gen.generate(0, 24, bn::string_view("(No equipment)"), _menu_sprites);
+        }
+
+        _gen.set_center_alignment();
+        _gen.generate(0, 68, bn::string_view("A:Equip  B:Back"), _menu_sprites);
+    }
+    else if (_menu_sub == MenuSub::SAVED)
+    {
+        // ── Saved confirmation ───────────────────────────────────────
+        _gen.set_center_alignment();
+        _gen.generate(0, -8, bn::string_view("Game Saved!"), _menu_sprites);
+        _gen.generate(0, 12, bn::string_view("Press A to continue"), _menu_sprites);
     }
 }
 

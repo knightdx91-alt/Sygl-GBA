@@ -7,6 +7,7 @@
 #include "bn_sprite_text_generator.h"
 #include "common_variable_8x16_sprite_font.h"
 #include "save_data.h"
+#include "character.h"
 #include "title_scene.h"
 #include "overworld_scene.h"
 #include "combat_scene.h"
@@ -42,15 +43,45 @@ int main()
 
         if (title.chose_new_game())
         {
+            state.party.init_default();
             SaveSlot fresh = {};
             fresh.level = 1;
             fresh.hp_max = 20;
             fresh.mp_max = 12;
-            state.party.init_default();
             fresh.location_id = 1;
+            const Character& pc = state.party.player();
+            for (int i = 0; i < 12; ++i) fresh.player_name[i] = pc.name[i];
+            fresh.sygl_id = (uint8_t)pc.sygl;
             save_data::write_slot(0, fresh);
         }
-        // TODO: load slot select for Continue
+        else
+        {
+            // Continue — load slot 0
+            SaveSlot saved = {};
+            if (save_data::load_slot(0, saved))
+            {
+                state.party.init_default();
+                Character& pc = state.party.player();
+                for (int i = 0; i < 12; ++i) pc.name[i] = saved.player_name[i];
+                pc.sygl    = (SyglType)saved.sygl_id;
+                pc.level   = saved.level;
+                pc.hp_max  = saved.hp_max;
+                pc.mp_max  = saved.mp_max;
+                pc.hp      = pc.hp_max;
+                pc.mp      = pc.mp_max;
+                // Scale stats with level
+                for (int i = 1; i < pc.level; ++i)
+                {
+                    pc.atk++;
+                    pc.def++;
+                    pc.hp_max += 5;
+                    pc.mp_max += 3;
+                    pc.xp_next += pc.xp_next / 2;
+                }
+                pc.hp = pc.hp_max;
+                pc.mp = pc.mp_max;
+            }
+        }
     }
 
     // ── Main game loop ────────────────────────────────────────────────────────
