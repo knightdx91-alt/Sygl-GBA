@@ -506,7 +506,11 @@
       if (key === 'ArrowRight') { init.code = 'ArrowRight'; init.keyCode = 39; }
       if (key === 'Enter')      { init.code = 'Enter';       init.keyCode = 13; }
       if (key === 'Shift')      { init.code = 'ShiftLeft';   init.keyCode = 16; init.shiftKey = (type === 'keydown'); }
+      const ev = new KeyboardEvent(type, init);
+      window.dispatchEvent(ev);
       document.dispatchEvent(new KeyboardEvent(type, init));
+      const canvas = document.querySelector('#game canvas');
+      if (canvas) canvas.dispatchEvent(new KeyboardEvent(type, init));
     }
 
     function bindBtn(el) {
