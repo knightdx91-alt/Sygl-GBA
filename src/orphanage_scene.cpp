@@ -26,7 +26,7 @@ static const bn::string_view CUTSCENE_BAL[] = {
     "A carpet. Enchanted.",
     "He rises slowly, then faster.",
     "Across to the mausoleum.",
-    "It has no real roof—just sky.",
+    "It has no real roof -- just sky.",
     "He drops inside. Disappears.",
     "Whatever is in there, he found it."
 };
@@ -53,7 +53,7 @@ static const bn::string_view BROWN_INTRO[] = {
 
 static const bn::string_view BROWN_POST[] = {
     "Hmm. I understand.",
-    "Now — I have news for you.",
+    "Now - I have news for you.",
     "A letter arrived this morning.",
     "You and Bal have been accepted",
     "to The Heir's School.",
@@ -331,7 +331,10 @@ void OrphanageScene::update_camera()
     if (_cam_y < 0)  _cam_y = 0;
     if (_cam_y > 96) _cam_y = 96;   // 256 - 160
 
-    if (_bg) _bg->set_position(_cam_x, _cam_y);
+    // Butano BG position uses a centred, negated coordinate system:
+    // positive set_position y moves the BG downward (camera pans up).
+    // We want the camera to follow the player, so negate both axes.
+    if (_bg) _bg->set_position(-_cam_x, -_cam_y);
 
     // Reposition player sprite
     int sx, sy;
